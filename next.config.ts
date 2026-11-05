@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import { randomUUID } from "node:crypto";
 import { GAME_SLUGS } from "./src/content/game-slugs";
+import { syllabus } from "./src/content/syllabus";
 
 /**
  * Dos modos de build:
@@ -27,7 +28,10 @@ const withSerwist = withSerwistInit({
   // Todas las pantallas quedan disponibles offline desde la primera visita.
   additionalPrecacheEntries: [
     "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/~offline",
-    ...Array.from({ length: 17 }, (_, i) => `/aprender/modulo-${i + 1}`),
+    ...syllabus.flatMap((m) => [
+      `/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`,
+      ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/leccion-${id.replace(".", "-")}`),
+    ]),
     ...GAME_SLUGS.map((g) => `/juegos/${g}`),
     "/examenes/itn-m1-3", "/examenes/itn-m4-7", "/examenes/itn-m8-10", "/examenes/itn-m11-13",
     "/examenes/itn-m14-15", "/examenes/itn-m16-17", "/examenes/itn-final", "/examenes/practica",

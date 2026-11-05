@@ -5,7 +5,7 @@ import { Group, Row } from "@/components/ui/apple";
 
 /* H10 Ayuda y documentación: hoja estilo iOS, breve y orientada a tareas. */
 const FAQ = [
-  { icon: BookOpen, tint: "orange", q: "¿Por dónde empiezo?", a: "Entra a Aprender → Módulo 1. Cada lección dura unos 5 minutos y termina con un minijuego." },
+  { icon: BookOpen, tint: "orange", q: "¿Por dónde empiezo?", a: "Toca \"Continuar\" en Inicio. Cada lección se lee en pocos minutos; al estudiar todas las de un módulo se desbloquea su reto final." },
   { icon: CloudOff, tint: "teal", q: "¿Se pierde mi avance sin internet?", a: "No. Todo se guarda en tu dispositivo y se envía solo cuando vuelve la conexión. Lo ves en el indicador de arriba." },
   { icon: ClipboardCheck, tint: "green", q: "¿Cómo funcionan los exámenes?", a: "Cada intento sortea preguntas distintas. Al terminar ves qué fallaste y por qué." },
   { icon: Timer, tint: "indigo", q: "¿Qué es el Modo Enfoque?", a: "Tú eliges cuánto dura (5 a 180 min) y decides activarlo. En la app de Android la pantalla queda fijada: sin notificaciones ni otras apps hasta que termine." },

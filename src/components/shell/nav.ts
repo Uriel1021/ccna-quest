@@ -18,6 +18,9 @@ export const NAV: NavItem[] = [
 export function labelFor(segment: string): string {
   const m = /^modulo-(\d+)$/.exec(segment);
   if (m) return `Módulo ${m[1]}`;
+  const l = /^leccion-(\d+)-(\d+)$/.exec(segment);
+  if (l) return `Lección ${l[1]}.${l[2]}`;
+  if (segment === "reto") return "Reto";
   const game = gameBySlug(segment);
   if (game) return game.title;
   const exam = examById(segment);

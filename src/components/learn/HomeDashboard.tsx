@@ -6,6 +6,7 @@ import { useLessonStats } from "./useLessonStats";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/local-db";
 import { GAMES } from "@/content/games";
+import { lessonSlug } from "@/content/lessons";
 
 export function HomeDashboard() {
   const s = useLessonStats();
@@ -14,6 +15,8 @@ export function HomeDashboard() {
   const played = useLiveQuery(async () => new Set((await db.games.toArray()).map((g) => g.gameSlug)).size, [], 0);
   const next = s.nextModule;
   const nm = s.perModule[next.id - 1];
+  const nextLesson = next.lessons.find(([id]) => !s.done.has(id));
+  const continueHref = nextLesson ? `/aprender/modulo-${next.id}/${lessonSlug(nextLesson[0])}` : `/aprender/modulo-${next.id}`;
   return (
     <>
       {/* Tarjeta "Continuar" al estilo de las apps de Apple */}
@@ -29,8 +32,8 @@ export function HomeDashboard() {
             <p className="mt-1 text-[15px] text-muted">{next.plain}</p>
           </div>
         </div>
-        <Link href={`/aprender/modulo-${next.id}`} className="pressable flex min-h-12 items-center justify-center gap-2 border-t border-border/70 font-semibold text-brand hover:bg-fill">
-          {nm.done ? "Seguir con el módulo" : "Empezar módulo"} <ArrowRight size={18} aria-hidden />
+        <Link href={continueHref} className="pressable flex min-h-12 items-center justify-center gap-2 border-t border-border/70 font-semibold text-brand hover:bg-fill">
+          {nextLesson ? `${nm.done ? "Seguir con" : "Empezar"} la lección ${nextLesson[0]}` : "Ver el módulo"} <ArrowRight size={18} aria-hidden />
         </Link>
       </section>
 
