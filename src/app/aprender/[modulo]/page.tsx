@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { syllabus } from "@/content/syllabus";
-import { LargeTitle } from "@/components/ui/apple";
+import { LargeTitle, Group, Row } from "@/components/ui/apple";
+import { gamesForModule } from "@/content/games";
 import { LessonChecklist } from "@/components/learn/LessonChecklist";
 
 export const dynamicParams = false;
@@ -23,6 +24,13 @@ export default async function ModulePage({ params }: Props) {
     <>
       <p className="text-[13px] font-semibold uppercase tracking-wide text-brand">Módulo {m.id}</p>
       <LargeTitle title={m.title} subtitle={m.plain} />
+      {gamesForModule(m.id).length > 0 && (
+        <Group header="Practica jugando">
+          {gamesForModule(m.id).map((g) => (
+            <Row key={g.slug} href={`/juegos/${g.slug}`} icon={g.icon} tint={g.tint} title={g.title} subtitle={g.tagline} />
+          ))}
+        </Group>
+      )}
       <LessonChecklist module={m} />
     </>
   );

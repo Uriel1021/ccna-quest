@@ -27,6 +27,7 @@ const withSerwist = withSerwistInit({
   additionalPrecacheEntries: [
     "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/~offline",
     ...Array.from({ length: 17 }, (_, i) => `/aprender/modulo-${i + 1}`),
+    ...["torre-osi", "binario-relampago", "subnet-sprint", "ruta-del-paquete"].map((g) => `/juegos/${g}`),
   ].map((url) => ({ url, revision })),
 });
 

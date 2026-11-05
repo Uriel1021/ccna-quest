@@ -1,6 +1,6 @@
 {
   "name": "ccna-quest",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -19,6 +19,7 @@
     "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.0",
+    "@capacitor/haptics": "^8.0.2",
     "@capacitor/network": "^8.0.1",
     "@capacitor/status-bar": "^8.0.4",
     "@neondatabase/serverless": "^1.2.0",

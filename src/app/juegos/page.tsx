@@ -1,5 +1,11 @@
-import { ComingSoon } from "@/components/ui/ComingSoon";
+import { LargeTitle } from "@/components/ui/apple";
+import { GameList } from "@/components/games/GameList";
 export const metadata = { title: "Juegos" };
 export default function Page() {
-  return <ComingSoon title="Juegos" text="Arma la pila OSI, divide subredes contra reloj y guía paquetes entre routers." />;
+  return (
+    <>
+      <LargeTitle title="Juegos" subtitle="Aprende jugando: arma, convierte, calcula y enruta." />
+      <GameList />
+    </>
+  );
 }

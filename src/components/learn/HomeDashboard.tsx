@@ -3,9 +3,13 @@ import Link from "next/link";
 import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight } from "lucide-react";
 import { Group, Row, ProgressRing } from "@/components/ui/apple";
 import { useLessonStats } from "./useLessonStats";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/local-db";
+import { GAMES } from "@/content/games";
 
 export function HomeDashboard() {
   const s = useLessonStats();
+  const played = useLiveQuery(async () => new Set((await db.games.toArray()).map((g) => g.gameSlug)).size, [], 0);
   const next = s.nextModule;
   const nm = s.perModule[next.id - 1];
   return (
@@ -31,7 +35,7 @@ export function HomeDashboard() {
       <Group header="Resumen">
         <Row href="/aprender" icon={BookOpen} tint="orange" title="Lecciones vistas" trailing={`${s.lessonsDone} de ${s.totalLessons}`} />
         <Row href="/aprender" icon={BookOpen} tint="blue" title="Módulos completos" trailing={`${s.modulesDone} de 17`} />
-        <Row href="/juegos" icon={Gamepad2} tint="pink" title="Minijuegos" trailing="Próximamente" />
+        <Row href="/juegos" icon={Gamepad2} tint="pink" title="Minijuegos probados" trailing={`${played} de ${GAMES.length}`} />
         <Row href="/examenes" icon={ClipboardCheck} tint="green" title="Mejor calificación" trailing="—" />
         <Row href="/enfoque" icon={Timer} tint="indigo" title="Sesiones de enfoque" trailing="0" />
       </Group>
