@@ -1,6 +1,7 @@
 import { Home, BookOpen, Gamepad2, ClipboardCheck, Timer, type LucideIcon } from "lucide-react";
 import type { Tint } from "@/components/ui/apple";
 import { gameBySlug } from "@/content/games";
+import { examById } from "@/content/exams";
 
 /* H6 Reconocer antes que recordar: icono + texto siempre visibles, nunca solo icono. */
 export type NavItem = { href: string; label: string; icon: LucideIcon; hint: string; tint: Tint };
@@ -19,5 +20,7 @@ export function labelFor(segment: string): string {
   if (m) return `Módulo ${m[1]}`;
   const game = gameBySlug(segment);
   if (game) return game.title;
+  const exam = examById(segment);
+  if (exam) return exam.title;
   return NAV.find((n) => n.href === `/${segment}`)?.label ?? decodeURIComponent(segment);
 }

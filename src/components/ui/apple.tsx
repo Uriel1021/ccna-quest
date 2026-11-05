@@ -61,7 +61,7 @@ export function Row({ title, subtitle, icon, tint, leading, trailing, href, onCl
   const inner = (
     <>
       {leading ?? (icon && <IconTile icon={icon} tint={tint} />)}
-      <span className="flex min-h-11 flex-1 items-center gap-3 border-b border-border/70 py-2.5 pr-4 group-last:border-b-0">
+      <span className="flex min-h-11 min-w-0 flex-1 items-center gap-3 border-b border-border/70 py-2.5 pr-4 group-last:border-b-0">
         <span className="min-w-0 flex-1">
           <span className="block truncate">{title}</span>
           {subtitle && <span className="mt-0.5 block text-[15px] leading-snug text-muted">{subtitle}</span>}

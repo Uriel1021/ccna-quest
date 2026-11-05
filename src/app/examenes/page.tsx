@@ -1,5 +1,11 @@
-import { ComingSoon } from "@/components/ui/ComingSoon";
+import { LargeTitle } from "@/components/ui/apple";
+import { ExamList } from "@/components/exams/ExamList";
 export const metadata = { title: "Exámenes" };
 export default function Page() {
-  return <ComingSoon title="Exámenes" text="Simuladores por módulo, checkpoints y examen final, con preguntas aleatorias y explicación de cada respuesta." />;
+  return (
+    <>
+      <LargeTitle title="Exámenes" subtitle="Simuladores con preguntas aleatorias. Funcionan sin internet y guardan cada respuesta al instante." />
+      <ExamList />
+    </>
+  );
 }

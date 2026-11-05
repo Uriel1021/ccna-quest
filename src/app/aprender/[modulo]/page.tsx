@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { syllabus } from "@/content/syllabus";
 import { LargeTitle, Group, Row } from "@/components/ui/apple";
 import { gamesForModule } from "@/content/games";
+import { examsForModule } from "@/content/exams";
+import { ClipboardCheck } from "lucide-react";
 import { LessonChecklist } from "@/components/learn/LessonChecklist";
 
 export const dynamicParams = false;
@@ -32,6 +34,11 @@ export default async function ModulePage({ params }: Props) {
         </Group>
       )}
       <LessonChecklist module={m} />
+      <Group header="Evalúate">
+        {examsForModule(m.id).map((e) => (
+          <Row key={e.id} href={`/examenes/${e.id}`} icon={ClipboardCheck} tint="green" title={`Examen ${e.title}`} subtitle={e.subtitle} />
+        ))}
+      </Group>
     </>
   );
 }
