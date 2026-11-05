@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     StatusBar: { overlaysWebView: false, style: "DEFAULT" },
+    LocalNotifications: {
+      smallIcon: "ic_stat_ccna",   // silueta blanca en res/drawable
+      iconColor: "#007AFF",
+      sound: "ccna_chime.wav",     // tono propio en res/raw
+    },
   },
 };
 

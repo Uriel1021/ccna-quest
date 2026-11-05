@@ -21,6 +21,7 @@ export function labelFor(segment: string): string {
   const l = /^leccion-(\d+)-(\d+)$/.exec(segment);
   if (l) return `Lección ${l[1]}.${l[2]}`;
   if (segment === "reto") return "Reto";
+  if (segment === "recordatorios") return "Recordatorios";
   const game = gameBySlug(segment);
   if (game) return game.title;
   const exam = examById(segment);

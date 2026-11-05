@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight } from "lucide-react";
+import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell } from "lucide-react";
 import { Group, Row, ProgressRing } from "@/components/ui/apple";
 import { useLessonStats } from "./useLessonStats";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -43,6 +43,7 @@ export function HomeDashboard() {
         <Row href="/juegos" icon={Gamepad2} tint="pink" title="Minijuegos probados" trailing={`${played} de ${GAMES.length}`} />
         <Row href="/examenes" icon={ClipboardCheck} tint="green" title="Mejor calificación" trailing={bestExam >= 0 ? `${bestExam}%` : "—"} />
         <Row href="/enfoque" icon={Timer} tint="indigo" title="Sesiones de enfoque" trailing={focusDone} />
+        <Row href="/recordatorios" icon={Bell} tint="red" title="Recordatorios" subtitle="Mañana y noche, a tu horario" />
       </Group>
     </>
   );

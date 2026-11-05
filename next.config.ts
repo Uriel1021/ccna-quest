@@ -27,7 +27,7 @@ const withSerwist = withSerwistInit({
   reloadOnOnline: false, // nunca recargar a mitad de un examen
   // Todas las pantallas quedan disponibles offline desde la primera visita.
   additionalPrecacheEntries: [
-    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/~offline",
+    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/recordatorios", "/~offline",
     ...syllabus.flatMap((m) => [
       `/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`,
       ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/leccion-${id.replace(".", "-")}`),

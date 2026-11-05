@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { BookOpen, CloudOff, ClipboardCheck, Timer, Keyboard } from "lucide-react";
+import { BookOpen, CloudOff, ClipboardCheck, Timer, Keyboard, Bell } from "lucide-react";
 import { Group, Row } from "@/components/ui/apple";
 
 /* H10 Ayuda y documentación: hoja estilo iOS, breve y orientada a tareas. */
@@ -9,6 +9,7 @@ const FAQ = [
   { icon: CloudOff, tint: "teal", q: "¿Se pierde mi avance sin internet?", a: "No. Todo se guarda en tu dispositivo y se envía solo cuando vuelve la conexión. Lo ves en el indicador de arriba." },
   { icon: ClipboardCheck, tint: "green", q: "¿Cómo funcionan los exámenes?", a: "Cada intento sortea preguntas distintas. Al terminar ves qué fallaste y por qué." },
   { icon: Timer, tint: "indigo", q: "¿Qué es el Modo Enfoque?", a: "Tú eliges cuánto dura (5 a 180 min) y decides activarlo. En la app de Android la pantalla queda fijada: sin notificaciones ni otras apps hasta que termine." },
+  { icon: Bell, tint: "red", q: "¿Puedo recibir recordatorios?", a: "Sí, en la app de Android: dos avisos al día (mañana y noche) a la hora que elijas. Actívalos o apágalos en Inicio → Recordatorios." },
   { icon: Keyboard, tint: "gray", q: "Atajos de teclado", a: "? abre esta ayuda · Esc la cierra · Tab recorre los controles." },
 ] as const;
 

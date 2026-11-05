@@ -14,7 +14,7 @@
  *  H10 Ayuda                   → botón de ayuda permanente.
  */
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { HelpCircle } from "lucide-react";
@@ -28,6 +28,7 @@ import { AppIcon } from "@/components/brand/AppIcon";
 import { db } from "@/lib/local-db";
 import { startSyncTriggers } from "@/lib/sync-client";
 import { FocusController } from "@/components/focus/FocusController";
+import { initReminders } from "@/lib/reminders";
 import { XP_PER_LEVEL } from "@/lib/progress";
 
 const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -62,7 +63,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [helpOpen, setHelpOpen] = useState(false);
 
+  const router = useRouter();
   useEffect(() => startSyncTriggers(), []);
+  useEffect(() => {
+    let off: (() => void) | undefined;
+    void initReminders((url) => router.push(url)).then((f) => { off = f; });
+    return () => off?.();
+  }, [router]);
 
   // H7: atajos de teclado (ignorados mientras se escribe).
   useEffect(() => {
