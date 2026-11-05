@@ -1,0 +1,11 @@
+.env*
+node_modules
+.next
+out
+android
+assets
+*.apk
+public/sw.js
+public/swe-worker-*.js
+.api-parked
+scripts

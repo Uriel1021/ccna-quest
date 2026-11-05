@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CCNA Quest
 
-## Getting Started
+Plataforma para aprender redes (CCNA 1 · ITN) jugando. Funciona sin conexión y se instala como app web (PWA) o como APK de Android.
 
-First, run the development server:
+- **Web:** https://ccna-quest.vercel.app
+- **Stack:** Next.js 15 · React 19 · Tailwind v4 · Dexie (IndexedDB) · Serwist (Service Worker + Background Sync) · Drizzle + Neon Postgres · Capacitor 8 (Android)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Arquitectura offline
+
+```
+UI ──▶ IndexedDB (fuente de verdad local) ──▶ outbox ──▶ POST /api/sync ──▶ Neon Postgres
+                                                ▲
+            Background Sync (SW) · online · visibilitychange · cada 60 s · Network (Capacitor)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Cada registro usa un UUID generado en el dispositivo → reenviar es idempotente.
+Conflictos entre dispositivos: gana el `updatedAt` más reciente.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Desarrollo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npx vercel link && npx vercel env pull .env.local   # credenciales de Neon
+npm run dev                                          # http://localhost:3000 (sin Service Worker)
+npm run build && npm start                           # producción local (con Service Worker)
+```
 
-## Learn More
+Base de datos (`src/db/schema.ts`):
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:generate -- --name <cambio>   # crea migración en drizzle/
+npm run db:migrate                       # la aplica en Neon
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Android (APK)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La APK empaqueta una exportación estática de la app (`npm run build:mobile` → `out/`) y
+sincroniza con `https://ccna-quest.vercel.app/api/sync`. Abre sin internet desde el primer arranque.
 
-## Deploy on Vercel
+Requisitos: JDK 21 y Android SDK 36 (`brew install openjdk@21 && brew install --cask android-commandlinetools`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+export ANDROID_HOME=$HOME/Library/Android/sdk
+npm run apk          # genera ./ccna-quest.apk
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`android/app/src/main/java/.../MainActivity.java` sirve el `index.html` de cada ruta de la
+exportación estática (Capacitor por defecto siempre entrega el de la raíz).
+
+## Despliegue
+
+```bash
+npx vercel deploy --prod
+```
