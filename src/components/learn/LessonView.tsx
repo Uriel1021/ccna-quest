@@ -28,7 +28,7 @@ export function Rich({ text }: { text: string }) {
   );
 }
 
-export function LessonView({ module: m, lessonId, title, content }: { module: Module; lessonId: string; title: string; content: LessonContent }) {
+export function LessonView({ module: m, lessonId, title, content, figures = [] }: { module: Module; lessonId: string; title: string; content: LessonContent; figures?: React.ReactNode[] }) {
   const router = useRouter();
   const done = useLiveQuery(async () => !!(await db.lessons.get(lessonId))?.done, [lessonId], false);
   const { prev, next } = neighbors(lessonId);
@@ -60,8 +60,15 @@ export function LessonView({ module: m, lessonId, title, content }: { module: Mo
         ))}
       </div>
 
+      {/* Texto con figuras intercaladas: figura 1 tras el párrafo 1, figura 2 tras el párrafo 2… */}
       <div className="mt-6 space-y-4 text-[17px] leading-relaxed">
-        {content.body.map((p, i) => <p key={i}><Rich text={p} /></p>)}
+        {content.body.map((p, i) => (
+          <div key={i}>
+            <p><Rich text={p} /></p>
+            {figures[i]}
+          </div>
+        ))}
+        {figures.slice(content.body.length)}
       </div>
 
       {content.example && (

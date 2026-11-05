@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { syllabus } from "@/content/syllabus";
 import { lessonContent, lessonIdFromSlug, lessonSlug } from "@/content/lessons";
 import { LessonView } from "@/components/learn/LessonView";
+import { lessonFigures } from "@/content/lessons/figures";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -25,5 +26,5 @@ export default async function Page({ params }: Props) {
   const p = await params;
   const r = resolve(p.modulo, p.leccion);
   if (!r) notFound();
-  return <LessonView module={r.m} lessonId={r.id} title={r.title} content={r.content} />;
+  return <LessonView module={r.m} lessonId={r.id} title={r.title} content={r.content} figures={lessonFigures(r.id)} />;
 }
