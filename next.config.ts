@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import { randomUUID } from "node:crypto";
+import { GAME_SLUGS } from "./src/content/game-slugs";
 
 /**
  * Dos modos de build:
@@ -27,7 +28,9 @@ const withSerwist = withSerwistInit({
   additionalPrecacheEntries: [
     "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/~offline",
     ...Array.from({ length: 17 }, (_, i) => `/aprender/modulo-${i + 1}`),
-    ...["torre-osi", "binario-relampago", "subnet-sprint", "ruta-del-paquete"].map((g) => `/juegos/${g}`),
+    ...GAME_SLUGS.map((g) => `/juegos/${g}`),
+    "/examenes/itn-m1-3", "/examenes/itn-m4-7", "/examenes/itn-m8-10", "/examenes/itn-m11-13",
+    "/examenes/itn-m14-15", "/examenes/itn-m16-17", "/examenes/itn-final", "/examenes/practica",
   ].map((url) => ({ url, revision })),
 });
 
