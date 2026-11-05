@@ -10,6 +10,7 @@ import { GAMES } from "@/content/games";
 export function HomeDashboard() {
   const s = useLessonStats();
   const bestExam = useLiveQuery(async () => (await db.attempts.toArray()).reduce((m, a) => Math.max(m, a.score ?? -1), -1), [], -1);
+  const focusDone = useLiveQuery(() => db.focus.where("status").equals("completed").count(), [], 0);
   const played = useLiveQuery(async () => new Set((await db.games.toArray()).map((g) => g.gameSlug)).size, [], 0);
   const next = s.nextModule;
   const nm = s.perModule[next.id - 1];
@@ -38,7 +39,7 @@ export function HomeDashboard() {
         <Row href="/aprender" icon={BookOpen} tint="blue" title="Módulos completos" trailing={`${s.modulesDone} de 17`} />
         <Row href="/juegos" icon={Gamepad2} tint="pink" title="Minijuegos probados" trailing={`${played} de ${GAMES.length}`} />
         <Row href="/examenes" icon={ClipboardCheck} tint="green" title="Mejor calificación" trailing={bestExam >= 0 ? `${bestExam}%` : "—"} />
-        <Row href="/enfoque" icon={Timer} tint="indigo" title="Sesiones de enfoque" trailing="0" />
+        <Row href="/enfoque" icon={Timer} tint="indigo" title="Sesiones de enfoque" trailing={focusDone} />
       </Group>
     </>
   );

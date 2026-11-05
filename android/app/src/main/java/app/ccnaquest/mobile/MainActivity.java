@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(FocusLockPlugin.class); // Modo Enfoque (debe registrarse antes de super.onCreate)
         super.onCreate(savedInstanceState);
         bridge.setWebViewClient(new StaticExportWebViewClient(this));
     }

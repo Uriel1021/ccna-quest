@@ -27,6 +27,7 @@ import { IconTile, ProgressRing } from "@/components/ui/apple";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { db } from "@/lib/local-db";
 import { startSyncTriggers } from "@/lib/sync-client";
+import { FocusController } from "@/components/focus/FocusController";
 import { XP_PER_LEVEL } from "@/lib/progress";
 
 const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -135,6 +136,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
+        <FocusController />
         <main id="contenido" tabIndex={-1} className="mx-auto max-w-5xl px-4 pb-32 pt-5 outline-none md:px-8 md:pb-12 md:pt-8">
           <Breadcrumbs />
           {children}

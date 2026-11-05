@@ -8,7 +8,7 @@ const FAQ = [
   { icon: BookOpen, tint: "orange", q: "¿Por dónde empiezo?", a: "Entra a Aprender → Módulo 1. Cada lección dura unos 5 minutos y termina con un minijuego." },
   { icon: CloudOff, tint: "teal", q: "¿Se pierde mi avance sin internet?", a: "No. Todo se guarda en tu dispositivo y se envía solo cuando vuelve la conexión. Lo ves en el indicador de arriba." },
   { icon: ClipboardCheck, tint: "green", q: "¿Cómo funcionan los exámenes?", a: "Cada intento sortea preguntas distintas. Al terminar ves qué fallaste y por qué." },
-  { icon: Timer, tint: "indigo", q: "¿Qué es el Modo Enfoque?", a: "Una sesión de 60 minutos sin distracciones. En Android la pantalla queda fijada." },
+  { icon: Timer, tint: "indigo", q: "¿Qué es el Modo Enfoque?", a: "Tú eliges cuánto dura (5 a 180 min) y decides activarlo. En la app de Android la pantalla queda fijada: sin notificaciones ni otras apps hasta que termine." },
   { icon: Keyboard, tint: "gray", q: "Atajos de teclado", a: "? abre esta ayuda · Esc la cierra · Tab recorre los controles." },
 ] as const;
 
