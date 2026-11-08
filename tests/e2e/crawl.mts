@@ -3,7 +3,7 @@
  *  - respuestas HTTP ≠ 200, errores de JS, errores de consola, imágenes rotas,
  *  - desbordamiento horizontal (scroll lateral), páginas sin <h1>,
  *  - operaciones de sincronización que el servidor rechazaría.
- * /api/sync se simula en el navegador: no escribe nada en la BD real.
+ * /api/sync (subida) se simula en el navegador. Requiere el servidor con BD LOCAL (PGLITE_DIR) para crear la cuenta.
  * Uso: BASE=http://localhost:3100 npx tsx tests/e2e/crawl.mts
  */
 import { chromium, type Page } from "playwright-core";
@@ -12,6 +12,7 @@ import { lessonSlug } from "../../src/content/lessons";
 import { EXAMS } from "../../src/content/exams";
 import { GAME_SLUGS } from "../../src/content/game-slugs";
 import { SyncRequest } from "../../src/lib/sync-protocol";
+import { signup } from "./helpers.mts";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
 const routes = [
@@ -26,6 +27,7 @@ export const syncProblems: string[] = [];
 
 export async function mockSync(page: Page) {
   await page.route("**/api/sync", async (route) => {
+    if (route.request().method() === "GET") return route.continue(); // descarga de la nube: BD local de pruebas
     const body = route.request().postDataJSON();
     const parsed = SyncRequest.safeParse(body);
     if (!parsed.success) syncProblems.push(`sync inválido: ${JSON.stringify(parsed.error.issues.slice(0, 2))} ← ${JSON.stringify(body).slice(0, 300)}`);
@@ -69,6 +71,7 @@ if (isMain) {
     const ctx = await browser.newContext({ ...opts, serviceWorkers: process.env.SW === "allow" ? "allow" : "block", locale: "es-MX" });
     const page = await ctx.newPage();
     await mockSync(page);
+    await signup(page, BASE); // la app exige cuenta
     for (const r of routes) await check(page, r, tag);
     // 404
     const nf = await page.goto(BASE + "/no-existe-esta-ruta");

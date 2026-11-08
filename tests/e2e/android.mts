@@ -1,6 +1,8 @@
 /**
  * Prueba dinámica 3: la APK real en un emulador/teléfono, conectada al WebView por DevTools.
- * Requisitos: emulador o teléfono conectado por adb, con la APK debug instalada y abierta.
+ * Requisitos: emulador conectado por adb con una APK debug compilada contra la API LOCAL
+ * (NEXT_PUBLIC_API_BASE=http://localhost:3100 npm run apk:debug), `adb reverse tcp:3100 tcp:3100`
+ * y el servidor con BD local (PGLITE_DIR). Así se crea la cuenta sin tocar producción.
  * Se recomienda modo avión: así no se envían datos de prueba al servidor real y se valida el modo offline.
  * Uso: npx tsx tests/e2e/android.mts
  */
@@ -10,6 +12,7 @@ import { lessonSlug } from "../../src/content/lessons";
 import { EXAMS } from "../../src/content/exams";
 import { GAME_SLUGS } from "../../src/content/game-slugs";
 import { QUESTIONS } from "../../src/content/questions";
+import { signup } from "./helpers.mts";
 
 const ORIGIN = "https://localhost";
 const routes = [
@@ -44,6 +47,11 @@ async function step(name: string, fn: () => Promise<void>) {
   catch (e) { problems.push(`${name} → ${(e as Error).message.split("\n")[0]}`); }
 }
 
+await step("Bienvenida: la APK exige cuenta; se crea y se entra", async () => {
+  current = "/ (bienvenida)";
+  await signup(page, ORIGIN);
+});
+
 await step(`Recorrido de ${routes.length} pantallas en el WebView`, async () => {
   for (const r of routes) {
     await go(r);
@@ -51,10 +59,12 @@ await step(`Recorrido de ${routes.length} pantallas en el WebView`, async () => 
       overflow: document.documentElement.scrollWidth - window.innerWidth,
       h1: document.querySelectorAll("h1").length,
       notFound: /no encontramos|404/i.test(document.title + document.body.innerText.slice(0, 200)),
+      gated: !document.querySelector('nav[aria-label="Principal"]'),
     }));
     if (info.overflow > 1) problems.push(`${r} → scroll horizontal ${info.overflow}px`);
     if (info.h1 !== 1) problems.push(`${r} → ${info.h1} <h1>`);
     if (info.notFound) problems.push(`${r} → muestra página 404`);
+    if (info.gated) problems.push(`${r} → se quedó en la bienvenida (sin sesión)`);
   }
 });
 

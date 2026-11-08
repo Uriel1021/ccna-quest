@@ -19,7 +19,9 @@ Conflictos entre dispositivos: gana el `updatedAt` más reciente.
 
 ## Cuentas
 
-Sin cuenta, el progreso vive en el dispositivo con un identificador anónimo. Con cuenta (correo + contraseña):
+**La app exige cuenta** (web y APK): al entrar por primera vez se muestra la bienvenida para crear cuenta o
+iniciar sesión (`AuthGate`). Solo `/instalar` está abierta. La primera vez hace falta internet; después funciona
+sin conexión. Con sesión vencida se puede seguir estudiando y el indicador pide "Vuelve a entrar".
 
 - **Crear cuenta** "reclama" el identificador anónimo del dispositivo: lo ya estudiado queda en la cuenta.
 - **Iniciar sesión** en otro dispositivo sube lo local y descarga lo de la nube (`GET /api/sync`); se combina sin duplicar.
@@ -73,7 +75,10 @@ npx tsx tests/e2e/pglite-setup.mts .pglite-e2e && npm run build
 PGLITE_DIR=.pglite-e2e DATABASE_URL= npx next start -p 3100 &
 npm run test:e2e                                   # 157 rutas (móvil y escritorio) + flujos
 TSX_TSCONFIG_PATH=tests/tsconfig.json npx tsx tests/e2e/account.mts   # cuentas y PWA
-npm run test:android     # APK debug en emulador (recomendado en modo avión)
+# Android: APK debug contra la API LOCAL (permite HTTP solo a localhost, solo en debug)
+NEXT_PUBLIC_API_BASE=http://localhost:3100 npm run apk:debug && npm run build   # (rehace .next para el servidor)
+adb reverse tcp:3100 tcp:3100 && adb install -r ccna-quest-debug.apk
+npm run test:android
 ```
 
 ## Licencia

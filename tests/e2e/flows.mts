@@ -9,6 +9,7 @@ import { GAME_SLUGS } from "../../src/content/game-slugs";
 import { syllabus } from "../../src/content/syllabus";
 import { lessonSlug } from "../../src/content/lessons";
 import { SyncRequest } from "../../src/lib/sync-protocol";
+import { signup } from "./helpers.mts";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
 const results: { name: string; ok: boolean; detail?: string }[] = [];
@@ -32,6 +33,7 @@ const expect = (cond: unknown, msg: string) => { if (!cond) throw new Error(msg)
 async function setup(ctx: BrowserContext) {
   await ctx.route("**/api/sync", async (route) => {
     if (syncDown) return route.abort("internetdisconnected");
+    if (route.request().method() === "GET") return route.continue(); // descarga de la nube: BD local de pruebas
     const body = route.request().postDataJSON();
     const parsed = SyncRequest.safeParse(body);
     if (!parsed.success) syncErrors.push(`${JSON.stringify(parsed.error.issues.slice(0, 2))} ← ${JSON.stringify(body).slice(0, 300)}`);
@@ -71,7 +73,8 @@ await setup(ctx);
 const page = await ctx.newPage();
 watch(page);
 
-await step("Inicio carga con perfil nuevo (0 XP)", async () => {
+await step("Bienvenida: crear cuenta y entrar (0 XP)", async () => {
+  await signup(page, BASE);
   await go(page, "/");
   await page.waitForTimeout(500);
   expect((await xpText(page)) === "0 XP", `XP inicial = ${await xpText(page)}`);

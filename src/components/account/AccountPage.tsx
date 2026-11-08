@@ -5,7 +5,6 @@
  * contraseña con "mostrar") · H9 errores en lenguaje claro junto al campo · H10 explicación de qué se guarda.
  */
 import { useEffect, useId, useState } from "react";
-import Link from "next/link";
 import clsx from "clsx";
 import { Cloud, Copy, Check, Eye, EyeOff, KeyRound, LogOut, ShieldCheck, Smartphone, RefreshCw } from "lucide-react";
 import { Button, Group, LargeTitle, Row } from "@/components/ui/apple";
@@ -49,7 +48,7 @@ function Field({ label, type = "text", value, onChange, autoComplete, error, hin
 const ErrorBox = ({ err }: { err: Err }) => err && <p role="alert" className="mt-3 rounded-xl bg-danger/10 p-3 text-[15px] text-danger">{err.message}</p>;
 
 /* ── Muestra el código de recuperación una sola vez ── */
-function RecoveryCode({ code, onDone, title = "Guarda tu código de recuperación" }: { code: string; onDone: () => void; title?: string }) {
+export function RecoveryCode({ code, onDone, title = "Guarda tu código de recuperación" }: { code: string; onDone: () => void; title?: string }) {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   return (
@@ -72,8 +71,10 @@ function RecoveryCode({ code, onDone, title = "Guarda tu código de recuperació
 }
 
 /* ── Formularios sin sesión ── */
-function AuthForms({ expiredEmail, onCode }: { expiredEmail?: string; onCode: (code: string) => void }) {
-  const [mode, setMode] = useState<Mode>("login");
+export function AuthForms({ expiredEmail, onCode, initialMode = "login", showBenefits = true }: {
+  expiredEmail?: string; onCode: (code: string) => void; initialMode?: Mode; showBenefits?: boolean;
+}) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState(expiredEmail ?? "");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -141,11 +142,11 @@ function AuthForms({ expiredEmail, onCode }: { expiredEmail?: string; onCode: (c
           : <button onClick={() => switchTo("recover")} className="min-h-11 font-semibold text-brand">¿Olvidaste tu contraseña?</button>}
       </div>
 
-      <Group header="¿Para qué una cuenta?" className="mt-6" footer="Solo guardamos tu nombre, tu correo y tu progreso. La contraseña se guarda cifrada. Sin cuenta, la app funciona igual y tu progreso se queda en este dispositivo.">
+      {showBenefits && <Group header="¿Para qué una cuenta?" className="mt-6" footer="Solo guardamos tu nombre, tu correo y tu progreso. La contraseña se guarda cifrada. Necesitas internet para crear tu cuenta o entrar; después la app también funciona sin conexión.">
         <Row icon={Cloud} tint="blue" title="Tu progreso en la nube" subtitle="No lo pierdes si cambias o formateas tu teléfono." />
         <Row icon={Smartphone} tint="green" title="En todos tus dispositivos" subtitle="Empieza en el celular y sigue en la computadora." />
         <Row icon={ShieldCheck} tint="indigo" title="Lo que ya hiciste se conserva" subtitle="Al crear tu cuenta, tu avance actual pasa a ella." />
-      </Group>
+      </Group>}
     </div>
   );
 }
@@ -247,7 +248,6 @@ export function AccountPage() {
         : code ? <RecoveryCode code={code} onDone={() => setCode(null)} />
         : session && !session.expired ? <AccountView email={session.email} displayName={session.displayName} />
         : <AuthForms expiredEmail={session?.expired ? session.email : undefined} onCode={setCode} />}
-      {!session && <p className="mt-8 text-center text-[13px] text-muted"><Link href="/" className="text-brand">Seguir sin cuenta</Link></p>}
     </>
   );
 }

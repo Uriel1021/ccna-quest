@@ -48,8 +48,8 @@ export function HomeDashboard() {
       </Group>
 
       <Group header="Tu cuenta y la app">
-        <Row href="/cuenta" icon={UserRound} tint="blue" title={session && !session.expired ? session.displayName : "Crea tu cuenta"}
-          subtitle={session && !session.expired ? "Tu progreso se guarda en la nube" : "Guarda tu progreso en la nube y úsalo en varios dispositivos"} />
+        <Row href="/cuenta" icon={UserRound} tint="blue" title={session?.displayName ?? "Tu cuenta"}
+          subtitle={session?.expired ? "Tu sesión expiró: toca para volver a entrar" : "Tu progreso se guarda en la nube"} />
         <Row href="/instalar" icon={Download} tint="green" title="Instalar la app" subtitle="En tu pantalla de inicio, funciona sin internet" />
       </Group>
     </>

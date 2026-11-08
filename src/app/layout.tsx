@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/shell/AppShell";
+import { AuthGate } from "@/components/account/AuthGate";
 
 /* En dispositivos Apple se usa San Francisco (fuente del sistema); Inter es el respaldo más parecido. */
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es-MX">
       <body className={inter.variable}>
-        <AppShell>{children}</AppShell>
+        <AuthGate><AppShell>{children}</AppShell></AuthGate>
       </body>
     </html>
   );

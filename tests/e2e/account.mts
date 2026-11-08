@@ -4,6 +4,7 @@
  * (ver tests/e2e/pglite-setup.mts). NO usar contra la BD real.
  */
 import { chromium, devices, type Page, type BrowserContext } from "playwright-core";
+import { signup } from "./helpers.mts";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
 const EMAIL = `alumna${Date.now()}@ejemplo.com`;
@@ -43,14 +44,23 @@ const [, A] = await mk("celular");
 const [, B] = await mk("compu", { viewport: { width: 1280, height: 860 }, isMobile: false, hasTouch: false });
 let code = "";
 
-await step("Celular: estudia sin cuenta (10 XP)", async () => {
-  await studyLesson(A, 1, "1.1");
-  expect((await xp(A)) === "10 XP", `XP = ${await xp(A)}`);
+await step("Sin cuenta no se ve la app: bienvenida en cualquier ruta, sin pestañas ni contenido", async () => {
+  for (const path of ["/", "/aprender/modulo-1/leccion-1-1", "/examenes/itn-m1-3", "/juegos/torre-osi", "/cuenta"]) {
+    await go(A, path);
+    await A.getByRole("heading", { name: "Bienvenido a CCNA Quest" }).waitFor({ timeout: 8000 });
+    expect(!(await A.getByRole("navigation", { name: "Principal" }).count()), `${path}: se ve la navegación`);
+    expect(!(await A.getByRole("button", { name: /Marcar como estudiada|Comenzar examen|Jugar/ }).count()), `${path}: se ve contenido`);
+  }
 });
 
-await step("Crear cuenta: validaciones en pantalla", async () => {
-  await go(A, "/cuenta");
-  await A.getByRole("tab", { name: "Crear cuenta" }).click();
+await step("/instalar sí está disponible sin cuenta", async () => {
+  await go(A, "/instalar");
+  await A.getByRole("heading", { name: "Instalar la app" }).waitFor({ timeout: 8000 });
+});
+
+await step("Bienvenida: validaciones del formulario de registro", async () => {
+  await go(A, "/");
+  await A.getByRole("tab", { name: "Crear cuenta", selected: true }).waitFor();
   await A.getByLabel("Tu nombre").fill("Ana");
   await A.getByLabel("Correo").fill(EMAIL);
   await A.getByLabel("Contraseña", { exact: true }).fill("corta");
@@ -72,13 +82,20 @@ await step("Crear cuenta: muestra el código de recuperación y exige confirmarl
   expect(await A.getByRole("button", { name: "Continuar" }).isDisabled(), "Continuar debería estar deshabilitado");
   await A.getByText("Ya guardé mi código").click();
   await A.getByRole("button", { name: "Continuar" }).click();
+  await A.getByRole("heading", { name: "¡Hola! 👋" }).waitFor({ timeout: 10000 });
+  await A.getByRole("link", { name: /Tu cuenta: Ana/ }).first().waitFor({ state: "attached", timeout: 8000 });
+  await go(A, "/cuenta");
   await A.getByText(EMAIL).waitFor();
-  await A.getByText("Todo tu progreso está en la nube").waitFor({ timeout: 15000 });
-  expect(await A.getByRole("link", { name: /Tu cuenta: Ana/ }).count(), "el encabezado no muestra la cuenta");
+});
+
+await step("Ya con cuenta: estudia en el celular (10 XP)", async () => {
+  await studyLesson(A, 1, "1.1");
+  expect((await xp(A)) === "10 XP", `XP = ${await xp(A)}`);
 });
 
 await step("Login con contraseña mala → mensaje claro", async () => {
-  await go(B, "/cuenta");
+  await go(B, "/");
+  await B.getByRole("tab", { name: "Iniciar sesión" }).click();
   await B.getByLabel("Correo").fill(EMAIL);
   await B.getByLabel("Contraseña", { exact: true }).fill("mala-mala");
   await B.getByRole("button", { name: "Iniciar sesión" }).last().click();
@@ -88,7 +105,7 @@ await step("Login con contraseña mala → mensaje claro", async () => {
 await step("Computadora: al iniciar sesión descarga el progreso del celular", async () => {
   await B.getByLabel("Contraseña", { exact: true }).fill(PASS);
   await B.getByRole("button", { name: "Iniciar sesión" }).last().click();
-  await B.getByText(EMAIL).waitFor({ timeout: 10000 });
+  await B.getByRole("heading", { name: "¡Hola! 👋" }).waitFor({ timeout: 10000 });
   await go(B, "/aprender/modulo-1/leccion-1-1");
   await B.getByRole("button", { name: /Siguiente lección/ }).waitFor({ timeout: 8000 });
   await go(B, "/");
@@ -111,11 +128,13 @@ await step("Lo hecho en la computadora aparece en el celular", async () => {
 await step("Cerrar sesión borra el progreso del dispositivo; volver a entrar lo recupera", async () => {
   await go(B, "/cuenta");
   await B.getByRole("button", { name: /Cerrar sesión/ }).click();
-  await B.getByRole("tab", { name: "Iniciar sesión" }).waitFor({ timeout: 8000 });
-  await go(B, "/");
-  await B.getByText("Nivel 1").first().waitFor();
-  expect(await B.getByText("0 XP · faltan 250").count(), "el progreso no se borró");
-  await go(B, "/cuenta");
+  await B.getByRole("heading", { name: "Bienvenido a CCNA Quest" }).waitFor({ timeout: 8000 });
+  const left = await B.evaluate(() => new Promise<number>((ok) => {
+    const r = indexedDB.open("ccna-quest");
+    r.onsuccess = () => { const q = r.result.transaction("lessons").objectStore("lessons").count(); q.onsuccess = () => { r.result.close(); ok(q.result); }; };
+  }));
+  expect(left === 0, `quedaron ${left} lecciones en el dispositivo`);
+  await B.getByRole("tab", { name: "Iniciar sesión" }).click();
   await B.getByLabel("Correo").fill(EMAIL);
   await B.getByLabel("Contraseña", { exact: true }).fill(PASS);
   await B.getByRole("button", { name: "Iniciar sesión" }).last().click();
@@ -168,6 +187,7 @@ const FAKE_PROMPT = (outcome: string) => `window.__prompted=false;addEventListen
 await step("PWA: con aviso del navegador aparece 'Instala CCNA Quest' y el botón lo abre", async () => {
   const [ctx, P] = await mk("pwa");
   await P.addInitScript(FAKE_PROMPT("accepted"));
+  await signup(P, BASE);
   await go(P, "/");
   await P.getByText("Instala CCNA Quest").waitFor({ timeout: 5000 });
   await P.getByRole("button", { name: "Instalar", exact: true }).click();
@@ -180,6 +200,7 @@ await step("PWA: con aviso del navegador aparece 'Instala CCNA Quest' y el botó
 await step("PWA: 'Ahora no' oculta la tarjeta y se recuerda", async () => {
   const [ctx, P] = await mk("pwa2");
   await P.addInitScript(FAKE_PROMPT("dismissed"));
+  await signup(P, BASE);
   await go(P, "/");
   await P.getByRole("button", { name: "Ahora no" }).last().click();
   await go(P, "/");
@@ -192,6 +213,7 @@ await step("PWA en iPhone: instrucciones de Safari", async () => {
   const [ctx, P] = await mk("iphone", { ...devices["iPhone 13"], serviceWorkers: "block" });
   await go(P, "/instalar");
   await P.getByText("Agregar a pantalla de inicio").first().waitFor({ timeout: 5000 });
+  await signup(P, BASE);
   await go(P, "/");
   await P.getByRole("link", { name: "Ver cómo" }).waitFor({ timeout: 5000 });
   await ctx.close();
