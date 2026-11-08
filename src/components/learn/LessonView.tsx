@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { BookMarked, CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, ListChecks, Clock } from "lucide-react";
 import { Button } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { Lock, Trophy } from "lucide-react";
 import { db } from "@/lib/local-db";
 import { syllabus } from "@/content/syllabus";
@@ -26,7 +26,14 @@ export function ChallengeRunner({ moduleId }: { moduleId: number }) {
       "Con 3 aciertos seguidos tus puntos valen ×1.5, y con 5 seguidos ×2.",
     ],
   };
-  if (doneIds === null) return null;
+  if (doneIds === null) {
+    return (
+      <section className="mx-auto max-w-md py-10 text-center" aria-busy="true">
+        <h1 className="font-display text-2xl font-bold">{meta.title}</h1>
+        <p className="mt-2 text-muted">Cargando tu progreso…</p>
+      </section>
+    );
+  }
   const pending = m.lessons.filter(([id]) => !doneIds.has(id));
   if (pending.length > 0) {
     return (

@@ -16,7 +16,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { HelpCircle } from "lucide-react";
 import clsx from "clsx";
 import { NAV } from "./nav";

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/use-live-query";
 import clsx from "clsx";
 import { Bell, BellOff, Moon, Sun, Volume2, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { Button, Group, LargeTitle, Row } from "@/components/ui/apple";
@@ -33,7 +34,8 @@ function LockPreview({ time, title, body }: { time: string; title: string; body:
 }
 
 export function RemindersPage() {
-  const native = remindersSupported();
+  // La página se pre-renderiza como web; decidir "nativo" en el primer render rompería la hidratación en la APK.
+  const native = useHydrated() && remindersSupported();
   const [s, setS] = useState<ReminderSettings>(DEFAULT_REMINDERS);
   const [perm, setPerm] = useState<"granted" | "denied" | "prompt">("prompt");
   const [msg, setMsg] = useState<string | null>(null);

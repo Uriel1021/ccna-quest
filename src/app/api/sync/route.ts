@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { users, examAttempts, attemptAnswers, lessonProgress, gameScores, userBadges, focusSessions } from "@/db/schema";
-import { SyncRequest, type SyncOp, type SyncResponse } from "@/lib/sync-protocol";
+import { SyncEnvelope, SyncOp, type SyncResponse } from "@/lib/sync-protocol";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
 }
 
 async function handle(req: Request): Promise<Response> {
-  const parsed = SyncRequest.safeParse(await req.json().catch(() => null));
+  const parsed = SyncEnvelope.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
 
   const db = getDb();
@@ -134,9 +134,11 @@ async function handle(req: Request): Promise<Response> {
   }
 
   // En orden: un intento siempre llega antes que sus respuestas.
-  for (const { seq, op } of ops) {
+  for (const { seq, op: raw } of ops) {
+    const op = SyncOp.safeParse(raw);
+    if (!op.success) { out.rejected.push({ seq, reason: "invalid" }); continue; }
     try {
-      await apply(db, userId, op);
+      await apply(db, userId, op.data);
       out.applied.push(seq);
     } catch (e) {
       const msg = (e as { code?: string; message?: string });

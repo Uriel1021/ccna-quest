@@ -1,6 +1,6 @@
 "use client";
 /** Vista de un módulo: lecciones (con avance), reto final, juegos relacionados y exámenes. */
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { CheckCircle2, Circle, ClipboardCheck, Lock, Trophy } from "lucide-react";
 import { Group, IconTile, Row } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";

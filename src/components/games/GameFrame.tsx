@@ -7,7 +7,7 @@
  */
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { Play, RotateCcw, X, Trophy, Clock, Zap } from "lucide-react";
 import { Button, Group, Row, IconTile } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";
@@ -27,6 +27,7 @@ export function GameFrame({ meta, Game }: { meta: GameMeta; Game: React.Componen
   const [confirmExit, setConfirmExit] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
   const startedAt = useRef(0);
+  const finishedRun = useRef(-1);
 
   const best = useLiveQuery(
     async () => (await db.games.where("gameSlug").equals(meta.slug).toArray()).reduce((m, g) => Math.max(m, g.score), 0),
@@ -43,12 +44,16 @@ export function GameFrame({ meta, Game }: { meta: GameMeta; Game: React.Componen
     void haptic("tap");
   };
 
-  const finish = async (r: GameResult) => {
+  const finish = async (raw: GameResult) => {
+    // Un juego puede avisar dos veces (temporizador + último toque): solo cuenta la primera.
+    if (finishedRun.current === runId) return;
+    finishedRun.current = runId;
+    const r = { ...raw, score: Math.max(0, Math.round(raw.score)), level: Math.max(1, Math.round(raw.level ?? 1)) };
     const durationSec = Math.round((Date.now() - startedAt.current) / 1000);
     const ratio = r.max > 0 ? Math.min(1, r.score / r.max) : 0;
     const xp = 5 + Math.round(20 * ratio);
     const prevBest = best;
-    await recordGame(meta.slug, r.level ?? 1, r.score, durationSec, xp);
+    await recordGame(meta.slug, r.level, r.score, durationSec, xp);
 
     const earned: Badge[] = [];
     for (const id of ["primer-juego", ...(ratio === 1 ? [`perfecto-${meta.slug}`] : [])]) {

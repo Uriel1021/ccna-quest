@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { Check, ChevronLeft, ChevronRight, Clock, Flag, Grid3x3, Play, RotateCcw, X, CloudCheck } from "lucide-react";
 import { Button, Group, IconTile, ProgressRing, Row } from "@/components/ui/apple";
 import { db, type LocalAttempt } from "@/lib/local-db";

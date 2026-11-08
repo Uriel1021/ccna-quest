@@ -52,6 +52,15 @@ export const SyncRequest = z.object({
 });
 export type SyncRequest = z.infer<typeof SyncRequest>;
 
+/**
+ * Sobre que valida el servidor: cada `op` se revisa por separado. Así una operación inválida
+ * se rechaza sola en vez de tumbar el lote entero (que dejaría la cola del alumno atascada para siempre).
+ */
+export const SyncEnvelope = z.object({
+  userId: z.uuid(),
+  ops: z.array(z.object({ seq: z.number().int(), op: z.unknown() })).min(1).max(100),
+});
+
 export type SyncResponse = { applied: number[]; rejected: { seq: number; reason: string }[] };
 
 export const SYNC_TAG = "outbox";

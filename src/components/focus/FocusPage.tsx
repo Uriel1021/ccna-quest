@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { BookOpen, ClipboardCheck, Gamepad2, Lock, Minus, Plus, ShieldAlert, Timer } from "lucide-react";
 import { Button, Group, LargeTitle, ProgressRing, Row } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";

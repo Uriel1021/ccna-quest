@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell } from "lucide-react";
 import { Group, Row, ProgressRing } from "@/components/ui/apple";
 import { useLessonStats } from "./useLessonStats";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { db } from "@/lib/local-db";
 import { GAMES } from "@/content/games";
 import { lessonSlug } from "@/content/lessons";

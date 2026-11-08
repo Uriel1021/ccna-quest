@@ -1,6 +1,6 @@
 {
   "name": "ccna-quest",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -13,7 +13,10 @@
     "db:studio": "drizzle-kit studio",
     "build:mobile": "node scripts/build-mobile.mjs",
     "cap:sync": "npm run build:mobile && cap sync android",
-    "apk": "npm run cap:sync && cd android && ./gradlew assembleDebug && cp app/build/outputs/apk/debug/app-debug.apk ../ccna-quest.apk"
+    "apk": "npm run cap:sync && cd android && ./gradlew assembleDebug && cp app/build/outputs/apk/debug/app-debug.apk ../ccna-quest.apk",
+    "test": "TSX_TSCONFIG_PATH=tests/tsconfig.json tsx --test --experimental-test-module-mocks --no-warnings tests/*.test.ts tests/*.test.mts",
+    "test:e2e": "TSX_TSCONFIG_PATH=tests/tsconfig.json tsx tests/e2e/crawl.mts && TSX_TSCONFIG_PATH=tests/tsconfig.json tsx tests/e2e/flows.mts",
+    "test:android": "TSX_TSCONFIG_PATH=tests/tsconfig.json tsx tests/e2e/android.mts"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",
@@ -49,7 +52,9 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "15.5.29",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

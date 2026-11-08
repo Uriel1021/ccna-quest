@@ -1,6 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { CloudOff, Check, RefreshCw, CloudUpload, AlertTriangle } from "lucide-react";
 import { db } from "@/lib/local-db";
 import { useSyncState, runSync } from "@/lib/sync-client";

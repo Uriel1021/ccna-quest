@@ -1,5 +1,5 @@
 "use client";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { Group, Row, IconTile } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";
 import { GAMES } from "@/content/games";

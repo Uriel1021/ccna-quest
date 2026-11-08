@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { Lock, Pin, Timer } from "lucide-react";
 import { Button } from "@/components/ui/apple";
 import { haptic } from "@/lib/feedback";

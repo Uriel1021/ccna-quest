@@ -1,5 +1,5 @@
 "use client";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from "@/lib/use-live-query";
 import { db } from "@/lib/local-db";
 import { syllabus } from "@/content/syllabus";
 
