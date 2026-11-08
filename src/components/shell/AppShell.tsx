@@ -17,7 +17,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "@/lib/use-live-query";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, UserRound } from "lucide-react";
 import clsx from "clsx";
 import { NAV } from "./nav";
 import { ConnectionStatus } from "./ConnectionStatus";
@@ -25,10 +25,11 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { HelpDrawer } from "./HelpDrawer";
 import { IconTile, ProgressRing } from "@/components/ui/apple";
 import { AppIcon } from "@/components/brand/AppIcon";
-import { db } from "@/lib/local-db";
+import { db, getSession } from "@/lib/local-db";
 import { startSyncTriggers } from "@/lib/sync-client";
 import { FocusController } from "@/components/focus/FocusController";
 import { initReminders } from "@/lib/reminders";
+import "@/lib/pwa-install"; // empieza a escuchar el aviso de instalación de la PWA lo antes posible
 import { XP_PER_LEVEL } from "@/lib/progress";
 
 const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -57,6 +58,24 @@ function LevelBadge({ compact = false }: { compact?: boolean }) {
       </div>
     </div>
   );
+}
+
+/** Acceso a la cuenta: inicial del alumno con sesión; silueta si no hay sesión (punto naranja si expiró). */
+function AccountButton({ withLabel = false }: { withLabel?: boolean }) {
+  const s = useLiveQuery(() => getSession(), []);
+  const pathname = usePathname();
+  const label = s && !s.expired ? `Tu cuenta: ${s.displayName}` : s?.expired ? "Tu sesión expiró: vuelve a entrar" : "Iniciar sesión o crear cuenta";
+  const badge = s && !s.expired
+    ? <span className="grid size-7 place-items-center rounded-full bg-brand text-[14px] font-bold text-brand-fg">{s.displayName.trim()[0]?.toUpperCase() ?? "?"}</span>
+    : <span className="relative grid size-7 place-items-center rounded-full bg-fill text-brand"><UserRound size={18} />{s?.expired && <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-warn ring-2 ring-surface" />}</span>;
+  if (withLabel) {
+    return (
+      <Link href="/cuenta" aria-current={pathname === "/cuenta" ? "page" : undefined} className={clsx("mb-2 flex min-h-11 items-center gap-2.5 rounded-lg px-2 text-[15px]", pathname === "/cuenta" ? "bg-fill font-medium" : "hover:bg-fill")} title={label}>
+        {badge}<span className="min-w-0 truncate">{s && !s.expired ? s.displayName : s?.expired ? "Vuelve a entrar" : "Iniciar sesión"}</span>
+      </Link>
+    );
+  }
+  return <Link href="/cuenta" aria-label={label} title={label} className="pressable grid size-9 place-items-center rounded-full hover:bg-fill">{badge}</Link>;
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -120,7 +139,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </ul>
         </nav>
-        <div className="mt-auto"><LevelBadge /></div>
+        <div className="mt-auto"><AccountButton withLabel /><LevelBadge /></div>
       </aside>
 
       <div className="min-w-0 flex-1">
@@ -131,6 +150,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-2">
               <ConnectionStatus />
               <span className="md:hidden"><LevelBadge compact /></span>
+              <span className="md:hidden"><AccountButton /></span>
               <button
                 onClick={() => setHelpOpen(true)}
                 className="pressable grid size-9 place-items-center rounded-full text-brand hover:bg-fill"

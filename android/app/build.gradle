@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+/*
+ * Firma de la APK de distribución. La clave NUNCA va en el repositorio:
+ * se lee de ~/.ccna-quest/keystore.properties (o de la ruta en CCNA_KEYSTORE_PROPERTIES).
+ * Sin ese archivo, el build release sale sin firmar (los builds debug siguen funcionando).
+ */
+def keystorePropsFile = file(System.getenv("CCNA_KEYSTORE_PROPERTIES") ?: "${System.getProperty('user.home')}/.ccna-quest/keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+
 android {
     namespace = "app.ccnaquest.mobile"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +16,8 @@ android {
         applicationId "app.ccnaquest.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "0.6.1"
+        versionCode 8
+        versionName "0.7.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +25,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProps['storeFile']) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystoreProps['storeFile']) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

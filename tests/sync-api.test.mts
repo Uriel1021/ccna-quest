@@ -14,7 +14,10 @@ let dbEnabled = true;
 
 const tableName = (t: unknown) => (t as Record<symbol, string>)[Symbol.for("drizzle:Name")] ?? "?";
 function fakeDb() {
+  // select().from().where().limit() → [] (alumno anónimo: no exige token)
+  const empty = { from: () => empty, where: () => empty, limit: async () => [] };
   return {
+    select: () => empty,
     insert(table: unknown) {
       const name = tableName(table);
       return {

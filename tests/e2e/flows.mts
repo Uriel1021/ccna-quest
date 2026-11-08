@@ -41,7 +41,7 @@ async function setup(ctx: BrowserContext) {
 }
 function watch(page: Page) {
   page.on("pageerror", (e) => { if (!e.message.includes("reading 'waiting'")) pageErrors.push(`${new URL(page.url()).pathname}: ${e.message.slice(0, 160)}`); });
-  page.on("console", (m) => { if (m.type() === "error" && !m.text().includes("internetdisconnected") && !m.text().includes("ERR_INTERNET_DISCONNECTED") && !m.text().includes("Failed to fetch RSC payload")) pageErrors.push(`${new URL(page.url()).pathname}: console ${m.text().slice(0, 160)}`); });
+  page.on("console", (m) => { if (m.type() === "error" && !m.text().includes("internetdisconnected") && !m.text().includes("ERR_INTERNET_DISCONNECTED") && !m.text().includes("Failed to fetch RSC payload") && !m.text().includes("net::ERR_FAILED")) pageErrors.push(`${new URL(page.url()).pathname}: console ${m.text().slice(0, 160)}`); });
 }
 const go = (page: Page, path: string) => page.goto(BASE + path, { waitUntil: "networkidle" });
 const xpText = (page: Page) => page.locator("header").getByText(/\d+ XP/).first().innerText();
@@ -66,7 +66,7 @@ async function answerExam(page: Page, correct: boolean) {
 }
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: "block", locale: "es-MX" });
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: process.env.SW === "allow" ? "allow" : "block", locale: "es-MX" });
 await setup(ctx);
 const page = await ctx.newPage();
 watch(page);

@@ -48,6 +48,9 @@ export class LocalDB extends Dexie {
 
 export const db = new LocalDB();
 
+export const XP_PER_LEVEL = 250;
+export const levelFor = (xp: number) => 1 + Math.floor(xp / XP_PER_LEVEL);
+
 /** Perfil del dispositivo. Se crea la primera vez con un UUID anónimo. */
 export async function getProfile(): Promise<LocalProfile> {
   const existing = await db.profile.get("me");
@@ -58,3 +61,8 @@ export async function getProfile(): Promise<LocalProfile> {
   // `add` falla si otra pestaña lo creó al mismo tiempo; en ese caso devolvemos el suyo.
   try { await db.profile.add(fresh); return fresh; } catch { return (await db.profile.get("me"))!; }
 }
+
+/* ── Sesión de la cuenta (si el alumno inició sesión) ── */
+export type LocalSession = { token: string; userId: string; email: string; displayName: string; expired?: boolean };
+export const getSession = async () => (await db.meta.get("session"))?.value as LocalSession | undefined;
+export const setSession = (s: LocalSession | null) => (s ? db.meta.put({ key: "session", value: s }) : db.meta.delete("session"));

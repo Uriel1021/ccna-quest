@@ -27,7 +27,7 @@ const withSerwist = withSerwistInit({
   reloadOnOnline: false, // nunca recargar a mitad de un examen
   // Todas las pantallas quedan disponibles offline desde la primera visita.
   additionalPrecacheEntries: [
-    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/recordatorios", "/~offline",
+    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/~offline",
     ...syllabus.flatMap((m) => [
       `/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`,
       ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/leccion-${id.replace(".", "-")}`),
@@ -46,6 +46,9 @@ const nextConfig: NextConfig = MOBILE
       env: { NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE ?? "https://ccna-quest.vercel.app" },
     }
   : {
+      // PGlite solo se usa en pruebas locales (PGLITE_DIR): no se empaqueta ni se sube a Vercel.
+      serverExternalPackages: ["@electric-sql/pglite"],
+      outputFileTracingExcludes: { "*": ["node_modules/@electric-sql/**"] },
       async headers() {
         return [{ source: "/sw.js", headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },

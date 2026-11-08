@@ -5,6 +5,7 @@
  */
 import { create } from "zustand";
 import { flushOutbox } from "./sync";
+import { pullAndMerge } from "./account";
 import { SYNC_TAG } from "./sync-protocol";
 
 type SyncState = { syncing: boolean; lastError?: string; lastSyncAt?: number };
@@ -29,6 +30,8 @@ export async function runSync() {
   useSyncState.setState({ syncing: true });
   try {
     const r = await flushOutbox();
+    // Con cuenta: trae lo hecho en otros dispositivos (como mucho cada 2 min) y sube lo que resulte de combinar.
+    if (!r.error && (await pullAndMerge().catch(() => false))) await flushOutbox();
     useSyncState.setState({ syncing: false, lastError: r.error, lastSyncAt: r.error ? useSyncState.getState().lastSyncAt : Date.now() });
   } catch (e) {
     useSyncState.setState({ syncing: false, lastError: (e as Error).message });

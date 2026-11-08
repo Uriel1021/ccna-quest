@@ -7,7 +7,7 @@
  *     soporta Background Sync, por eso hay respaldo).
  * Sin `window`: este archivo se importa también desde el Service Worker.
  */
-import { db, getProfile } from "./local-db";
+import { db, getProfile, getSession, setSession } from "./local-db";
 import { SYNC_ENDPOINT, type SyncOp, type SyncRequest, type SyncResponse } from "./sync-protocol";
 
 const BATCH = 50;
@@ -23,6 +23,9 @@ export function flushOutbox(): Promise<FlushResult> {
 
 async function doFlush(): Promise<FlushResult> {
   const { userId } = await getProfile();
+  const session = await getSession();
+  if (session?.expired) return { sent: 0, remaining: await db.outbox.count(), error: "auth" };
+  const auth: Record<string, string> = session ? { authorization: `Bearer ${session.token}` } : {};
   let sent = 0;
 
   // Web Locks evita que la pestaña y el Service Worker envíen el mismo lote a la vez.
@@ -36,12 +39,17 @@ async function doFlush(): Promise<FlushResult> {
       try {
         res = await fetch(SYNC_ENDPOINT, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...auth },
           body: JSON.stringify(body),
           signal: AbortSignal.timeout(15_000),
         });
       } catch (e) {
         return fail(batch.map((b) => b.seq!), `Sin conexión (${(e as Error).name})`, sent);
+      }
+      if (res.status === 401) {
+        // Cuenta con contraseña y sesión vencida/cerrada en otro lado: la cola se conserva hasta volver a entrar.
+        if (session) await setSession({ ...session, expired: true });
+        return fail([], "auth", sent);
       }
       if (!res.ok) return fail(batch.map((b) => b.seq!), `Servidor respondió ${res.status}`, sent);
 

@@ -13,7 +13,7 @@ import { QUESTIONS } from "../../src/content/questions";
 
 const ORIGIN = "https://localhost";
 const routes = [
-  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios",
+  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar",
   ...syllabus.flatMap((m) => [`/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`, ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/${lessonSlug(id)}`)]),
   ...EXAMS.map((e) => `/examenes/${e.id}`),
   ...GAME_SLUGS.map((s) => `/juegos/${s}`),
@@ -27,7 +27,9 @@ const webview = await device.webView({ pkg: "app.ccnaquest.mobile" });
 const page: Page = await webview.page();
 let current = "";
 page.on("pageerror", (e) => problems.push(`${current} → pageerror: ${e.message.slice(0, 180)}`));
-page.on("console", (m) => { if (m.type() === "error") problems.push(`${current} → console: ${m.text().slice(0, 180)}`); });
+// "Error injecting safe area CSS": carrera interna de Capacitor (SystemBars) cuando el documento se reemplaza
+// durante una recarga completa; la app no usa esas variables (usa env(safe-area-inset-*)).
+page.on("console", (m) => { if (m.type() === "error" && !m.text().includes("Error injecting safe area CSS")) problems.push(`${current} → console: ${m.text().slice(0, 180)}`); });
 
 page.on("response", (r) => { if (r.status() >= 400) problems.push(`${current} → HTTP ${r.status()} ${r.url()}`); });
 const go = async (path: string) => {

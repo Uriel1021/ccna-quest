@@ -22,6 +22,8 @@ export function labelFor(segment: string): string {
   if (l) return `Lección ${l[1]}.${l[2]}`;
   if (segment === "reto") return "Reto";
   if (segment === "recordatorios") return "Recordatorios";
+  if (segment === "cuenta") return "Tu cuenta";
+  if (segment === "instalar") return "Instalar la app";
   const game = gameBySlug(segment);
   if (game) return game.title;
   const exam = examById(segment);

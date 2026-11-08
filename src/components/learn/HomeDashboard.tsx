@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell } from "lucide-react";
+import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell, UserRound, Download } from "lucide-react";
 import { Group, Row, ProgressRing } from "@/components/ui/apple";
 import { useLessonStats } from "./useLessonStats";
 import { useLiveQuery } from "@/lib/use-live-query";
-import { db } from "@/lib/local-db";
+import { db, getSession } from "@/lib/local-db";
 import { GAMES } from "@/content/games";
 import { lessonSlug } from "@/content/lessons";
 
@@ -13,6 +13,7 @@ export function HomeDashboard() {
   const bestExam = useLiveQuery(async () => (await db.attempts.toArray()).reduce((m, a) => Math.max(m, a.score ?? -1), -1), [], -1);
   const focusDone = useLiveQuery(() => db.focus.where("status").equals("completed").count(), [], 0);
   const played = useLiveQuery(async () => new Set((await db.games.toArray()).map((g) => g.gameSlug)).size, [], 0);
+  const session = useLiveQuery(() => getSession(), [], undefined);
   const next = s.nextModule;
   const nm = s.perModule[next.id - 1];
   const nextLesson = next.lessons.find(([id]) => !s.done.has(id));
@@ -44,6 +45,12 @@ export function HomeDashboard() {
         <Row href="/examenes" icon={ClipboardCheck} tint="green" title="Mejor calificación" trailing={bestExam >= 0 ? `${bestExam}%` : "—"} />
         <Row href="/enfoque" icon={Timer} tint="indigo" title="Sesiones de enfoque" trailing={focusDone} />
         <Row href="/recordatorios" icon={Bell} tint="red" title="Recordatorios" subtitle="Mañana y noche, a tu horario" />
+      </Group>
+
+      <Group header="Tu cuenta y la app">
+        <Row href="/cuenta" icon={UserRound} tint="blue" title={session && !session.expired ? session.displayName : "Crea tu cuenta"}
+          subtitle={session && !session.expired ? "Tu progreso se guarda en la nube" : "Guarda tu progreso en la nube y úsalo en varios dispositivos"} />
+        <Row href="/instalar" icon={Download} tint="green" title="Instalar la app" subtitle="En tu pantalla de inicio, funciona sin internet" />
       </Group>
     </>
   );

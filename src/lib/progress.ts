@@ -3,12 +3,11 @@
  *   escribe en IndexedDB + encola para el servidor (misma transacción, todo o nada)
  *   y luego pide sincronizar. Si no hay red, no pasa nada: queda en cola.
  */
-import { db, getProfile, type LocalAttempt, type LocalFocus } from "./local-db";
+import { db, getProfile, levelFor, type LocalAttempt, type LocalFocus } from "./local-db";
 import { enqueue } from "./sync";
 import { requestSync } from "./sync-client";
 
-export const XP_PER_LEVEL = 250;
-const levelFor = (xp: number) => 1 + Math.floor(xp / XP_PER_LEVEL);
+export { XP_PER_LEVEL } from "./local-db";
 
 async function bumpXp(amount: number) {
   if (amount === 0) return;

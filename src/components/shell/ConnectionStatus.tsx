@@ -1,8 +1,9 @@
 "use client";
 import { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { useLiveQuery } from "@/lib/use-live-query";
-import { CloudOff, Check, RefreshCw, CloudUpload, AlertTriangle } from "lucide-react";
-import { db } from "@/lib/local-db";
+import { CloudOff, Check, RefreshCw, CloudUpload, AlertTriangle, LogIn } from "lucide-react";
+import { db, getSession } from "@/lib/local-db";
 import { useSyncState, runSync } from "@/lib/sync-client";
 
 /**
@@ -19,10 +20,15 @@ export function ConnectionStatus() {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
   const pending = useLiveQuery(() => db.outbox.count(), [], 0);
   const { syncing, lastError } = useSyncState();
+  const expired = useLiveQuery(async () => !!(await getSession())?.expired, [], false);
+  const router = useRouter();
 
   let Icon = Check, text = "Guardado", tone = "text-muted", spin = false;
   let title = "Todo tu progreso está guardado en la nube.";
-  if (!online) {
+  if (expired) {
+    Icon = LogIn; tone = "text-warn"; text = "Vuelve a entrar";
+    title = `Tu sesión expiró. Tu progreso sigue guardado en este dispositivo${pending ? ` (${pending} cambios por subir)` : ""}; inicia sesión para subirlo.`;
+  } else if (!online) {
     Icon = CloudOff; tone = "text-warn"; text = pending ? `Sin conexión · ${pending}` : "Sin conexión";
     title = `Sin conexión. Tu progreso se guarda en este dispositivo${pending ? ` (${pending} cambios por subir)` : ""} y se enviará solo al volver la red.`;
   } else if (syncing) {
@@ -37,7 +43,7 @@ export function ConnectionStatus() {
   return (
     <button
       type="button"
-      onClick={() => online && void runSync()}
+      onClick={() => (expired ? router.push("/cuenta") : online && void runSync())}
       title={title}
       aria-label={title}
       className={`pressable inline-flex h-8 items-center gap-1.5 rounded-full bg-fill px-3 text-[13px] font-medium ${tone}`}

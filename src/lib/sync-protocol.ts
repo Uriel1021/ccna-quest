@@ -61,8 +61,21 @@ export const SyncEnvelope = z.object({
   ops: z.array(z.object({ seq: z.number().int(), op: z.unknown() })).min(1).max(100),
 });
 
+type D<T extends { shape: { data: z.ZodType } }> = z.infer<T["shape"]["data"]>;
+/** Respuesta de GET /api/sync: todo el progreso de la cuenta, con el mismo formato que las operaciones. */
+export type PullResponse = {
+  profile: D<typeof ProfileOp>;
+  lessons: D<typeof LessonOp>[];
+  attempts: D<typeof AttemptOp>[];
+  answers: D<typeof AnswerOp>[];
+  games: D<typeof GameOp>[];
+  badges: D<typeof BadgeOp>[];
+  focus: D<typeof FocusOp>[];
+};
+
 export type SyncResponse = { applied: number[]; rejected: { seq: number; reason: string }[] };
 
 export const SYNC_TAG = "outbox";
 /** En la web es relativo; en la APK apunta al servidor de Vercel. */
-export const SYNC_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE ?? ""}/api/sync`;
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
+export const SYNC_ENDPOINT = `${API_BASE}/api/sync`;

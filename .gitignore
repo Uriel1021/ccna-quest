@@ -53,3 +53,6 @@ out/
 android/app/build/
 android/.gradle/
 .api-parked/
+
+# BD local de pruebas
+.pglite-e2e/

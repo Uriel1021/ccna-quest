@@ -20,13 +20,26 @@ const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),                   // generado en el dispositivo
   displayName: text("display_name").notNull().default("Alumno"),
-  email: text("email").unique(),                 // se vincula al iniciar sesión (paso posterior)
+  email: text("email").unique(),                 // en minúsculas; null = alumno anónimo (solo dispositivo)
+  passwordHash: text("password_hash"),           // scrypt; null = cuenta sin reclamar
+  recoveryHash: text("recovery_hash"),           // hash del código de recuperación
+  failedLogins: integer("failed_logins").notNull().default(0),
+  lockedUntil: ts("locked_until"),               // bloqueo temporal tras varios intentos fallidos
   xp: integer("xp").notNull().default(0),
   level: integer("level").notNull().default(1),
   streakDays: integer("streak_days").notNull().default(0),
   updatedAt: ts("updated_at").notNull().defaultNow(),
   createdAt: ts("created_at").notNull().defaultNow(),
 });
+
+/* Sesiones: el cliente guarda el token; aquí solo su hash SHA-256. */
+export const sessions = pgTable("sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  lastUsedAt: ts("last_used_at").notNull().defaultNow(),
+  expiresAt: ts("expires_at").notNull(),
+}, (t) => [index("session_user_idx").on(t.userId)]);
 
 /* Intento de examen. `questionOrder` congela el sorteo aleatorio para poder reanudarlo offline. */
 export const examAttempts = pgTable("exam_attempts", {

@@ -15,7 +15,7 @@ import { SyncRequest } from "../../src/lib/sync-protocol";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
 const routes = [
-  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/~offline",
+  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/~offline",
   ...syllabus.flatMap((m) => [`/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`, ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/${lessonSlug(id)}`)]),
   ...EXAMS.map((e) => `/examenes/${e.id}`),
   ...GAME_SLUGS.map((s) => `/juegos/${s}`),
