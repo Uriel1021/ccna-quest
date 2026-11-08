@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell, UserRound, Download } from "lucide-react";
+import { BookOpen, Gamepad2, ClipboardCheck, Timer, ArrowRight, Bell, UserRound, Download, MessageSquareText } from "lucide-react";
 import { Group, Row, ProgressRing } from "@/components/ui/apple";
 import { useLessonStats } from "./useLessonStats";
 import { useLiveQuery } from "@/lib/use-live-query";
@@ -51,6 +51,7 @@ export function HomeDashboard() {
         <Row href="/cuenta" icon={UserRound} tint="blue" title={session?.displayName ?? "Tu cuenta"}
           subtitle={session?.expired ? "Tu sesión expiró: toca para volver a entrar" : "Tu progreso se guarda en la nube"} />
         <Row href="/instalar" icon={Download} tint="green" title="Instalar la app" subtitle="En tu pantalla de inicio, funciona sin internet" />
+        <Row href="/comentarios" icon={MessageSquareText} tint="purple" title="Comentarios" subtitle="Reporta un error o sugiere una mejora" />
       </Group>
     </>
   );

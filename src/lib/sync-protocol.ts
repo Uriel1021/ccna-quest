@@ -43,7 +43,18 @@ export const FocusOp = z.object({
   }),
 });
 
-export const SyncOp = z.discriminatedUnion("kind", [ProfileOp, AttemptOp, AnswerOp, LessonOp, GameOp, BadgeOp, FocusOp]);
+export const FEEDBACK_CATEGORIES = ["bug", "content", "idea", "other"] as const;
+export const FEEDBACK_STATUSES = ["new", "reviewing", "resolved"] as const;
+export const FeedbackOp = z.object({
+  kind: z.literal("feedback"),
+  data: z.object({
+    id: z.uuid(), category: z.enum(FEEDBACK_CATEGORIES), message: z.string().trim().min(5).max(2000),
+    page: z.string().max(200).nullable(), appVersion: z.string().max(40).nullable(), platform: z.enum(["android", "web"]),
+    createdAt: ms,
+  }),
+});
+
+export const SyncOp = z.discriminatedUnion("kind", [ProfileOp, AttemptOp, AnswerOp, LessonOp, GameOp, BadgeOp, FocusOp, FeedbackOp]);
 export type SyncOp = z.infer<typeof SyncOp>;
 
 export const SyncRequest = z.object({
@@ -71,7 +82,10 @@ export type PullResponse = {
   games: D<typeof GameOp>[];
   badges: D<typeof BadgeOp>[];
   focus: D<typeof FocusOp>[];
+  feedback: FeedbackItem[];
 };
+/** Comentario tal como lo ve el alumno (con el estado y la respuesta del autor). */
+export type FeedbackItem = D<typeof FeedbackOp> & { status: (typeof FEEDBACK_STATUSES)[number]; reply: string | null; updatedAt: number };
 
 export type SyncResponse = { applied: number[]; rejected: { seq: number; reason: string }[] };
 

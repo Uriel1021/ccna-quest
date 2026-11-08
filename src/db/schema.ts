@@ -14,6 +14,8 @@ import { pgTable, uuid, text, integer, boolean, timestamp, jsonb, primaryKey, in
 
 export const examKindEnum = pgEnum("exam_kind", ["module", "checkpoint", "final", "practice"]);
 export const focusStatusEnum = pgEnum("focus_status", ["active", "completed", "aborted"]);
+export const feedbackCategoryEnum = pgEnum("feedback_category", ["bug", "content", "idea", "other"]);
+export const feedbackStatusEnum = pgEnum("feedback_status", ["new", "reviewing", "resolved"]);
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
 
@@ -98,3 +100,18 @@ export const focusSessions = pgTable("focus_sessions", {
   platform: text("platform").notNull(),          // "android" | "web"
   updatedAt: ts("updated_at").notNull(),
 });
+
+/* Comentarios de los alumnos para el autor (errores, contenido, sugerencias). El id lo genera el dispositivo. */
+export const feedback = pgTable("feedback", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  category: feedbackCategoryEnum("category").notNull(),
+  message: text("message").notNull(),
+  page: text("page"),                            // pantalla desde donde se envió ("/aprender/modulo-3/leccion-3-5")
+  appVersion: text("app_version"),
+  platform: text("platform"),                    // "android" | "web"
+  status: feedbackStatusEnum("status").notNull().default("new"),
+  reply: text("reply"),                          // respuesta del autor (el alumno la ve en "Mis comentarios")
+  createdAt: ts("created_at").notNull(),
+  updatedAt: ts("updated_at").notNull(),
+}, (t) => [index("feedback_status_idx").on(t.status, t.createdAt), index("feedback_user_idx").on(t.userId)]);

@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { sql, eq, inArray } from "drizzle-orm";
 import { getDb, type DB } from "@/db/client";
-import { users, examAttempts, attemptAnswers, lessonProgress, gameScores, userBadges, focusSessions } from "@/db/schema";
+import { users, examAttempts, attemptAnswers, lessonProgress, gameScores, userBadges, focusSessions, feedback } from "@/db/schema";
 import { SyncEnvelope, SyncOp, type SyncResponse, type PullResponse } from "@/lib/sync-protocol";
 import { sessionUser } from "@/lib/server/auth";
 import { withCors, preflight } from "@/lib/server/cors";
@@ -89,6 +89,13 @@ async function apply(db: DB, userId: string, op: SyncOp) {
       });
       return;
     }
+    case "feedback": {
+      // Una vez enviado no se edita desde el dispositivo (el autor cambia estado y respuesta).
+      const v = op.data;
+      await db.insert(feedback).values({ id: v.id, userId, category: v.category, message: v.message, page: v.page,
+        appVersion: v.appVersion, platform: v.platform, createdAt: d(v.createdAt), updatedAt: d(v.createdAt) }).onConflictDoNothing();
+      return;
+    }
   }
 }
 
@@ -163,12 +170,13 @@ async function pull(req: Request): Promise<Response> {
     if (!userId) return json({ error: "auth" }, 401);
     const ms = (d: Date | null) => (d ? d.getTime() : null);
     const [u] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const [lessons, attempts, games, badges, focus] = await Promise.all([
+    const [lessons, attempts, games, badges, focus, comments] = await Promise.all([
       db.select().from(lessonProgress).where(eq(lessonProgress.userId, userId)),
       db.select().from(examAttempts).where(eq(examAttempts.userId, userId)),
       db.select().from(gameScores).where(eq(gameScores.userId, userId)),
       db.select().from(userBadges).where(eq(userBadges.userId, userId)),
       db.select().from(focusSessions).where(eq(focusSessions.userId, userId)),
+      db.select().from(feedback).where(eq(feedback.userId, userId)),
     ]);
     const answers = attempts.length
       ? await db.select().from(attemptAnswers).where(inArray(attemptAnswers.attemptId, attempts.map((a) => a.id)))
@@ -183,6 +191,9 @@ async function pull(req: Request): Promise<Response> {
       badges: badges.map((b) => ({ badgeId: b.badgeId, earnedAt: b.earnedAt.getTime() })),
       focus: focus.map((f) => ({ id: f.id, startedAt: f.startedAt.getTime(), endedAt: ms(f.endedAt), targetSec: f.targetSec, status: f.status,
         interruptions: f.interruptions, platform: f.platform === "android" ? "android" : "web", updatedAt: f.updatedAt.getTime() })),
+      feedback: comments.map((c) => ({ id: c.id, category: c.category, message: c.message, page: c.page, appVersion: c.appVersion,
+        platform: c.platform === "android" ? "android" : "web", createdAt: c.createdAt.getTime(), status: c.status, reply: c.reply,
+        updatedAt: c.updatedAt.getTime() })),
     };
     return json(body);
   } catch (e) {

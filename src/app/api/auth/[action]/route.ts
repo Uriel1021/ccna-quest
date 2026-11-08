@@ -16,7 +16,7 @@ import { getDb, type DB } from "@/db/client";
 import { users, sessions } from "@/db/schema";
 import {
   hashSecret, verifySecret, newRecoveryCode, normalizeRecoveryCode, createSession, sessionUser, deleteSession,
-  registerFailure, isLocked, bearer, LOCK_MINUTES,
+  registerFailure, isLocked, bearer, LOCK_MINUTES, isAdminEmail,
 } from "@/lib/server/auth";
 import { withCors, preflight } from "@/lib/server/cors";
 import { RegisterBody, LoginBody, RecoverBody, ChangePasswordBody, NewRecoveryBody, type AuthOk } from "@/lib/auth-protocol";
@@ -37,7 +37,8 @@ async function parse<T extends z.ZodType>(req: Request, schema: T): Promise<z.in
   return err(400, issue?.message ?? "Datos inválidos.", issue?.path[0]?.toString());
 }
 
-const userJson = (u: { id: string; email: string | null; displayName: string }) => ({ id: u.id, email: u.email!, displayName: u.displayName });
+const userJson = (u: { id: string; email: string | null; displayName: string }) =>
+  ({ id: u.id, email: u.email!, displayName: u.displayName, ...(isAdminEmail(u.email) ? { isAdmin: true } : {}) });
 const findByEmail = async (db: DB, email: string) => (await db.select().from(users).where(eq(users.email, email)).limit(1))[0];
 const findById = async (db: DB, id: string) => (await db.select().from(users).where(eq(users.id, id)).limit(1))[0];
 
@@ -60,7 +61,7 @@ async function register(db: DB, req: Request) {
     throw e;
   }
   const token = await createSession(db, id);
-  return NextResponse.json({ token, recoveryCode, user: { id, email: b.email, displayName: b.displayName } } satisfies AuthOk);
+  return NextResponse.json({ token, recoveryCode, user: userJson({ id, email: b.email, displayName: b.displayName }) } satisfies AuthOk);
 }
 
 async function login(db: DB, req: Request) {

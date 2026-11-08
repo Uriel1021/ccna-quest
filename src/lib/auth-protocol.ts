@@ -13,6 +13,6 @@ export const RecoverBody = z.object({ email: Email, recoveryCode: z.string().min
 export const ChangePasswordBody = z.object({ currentPassword: z.string().min(1).max(128), newPassword: Password });
 export const NewRecoveryBody = z.object({ password: z.string().min(1).max(128) });
 
-export type AccountUser = { id: string; email: string; displayName: string };
+export type AccountUser = { id: string; email: string; displayName: string; isAdmin?: boolean };
 export type AuthOk = { token: string; user: AccountUser; recoveryCode?: string };
 export type AuthError = { error: string; field?: string };

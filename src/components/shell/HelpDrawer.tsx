@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { BookOpen, CloudOff, ClipboardCheck, Timer, Keyboard, Bell } from "lucide-react";
+import Link from "next/link";
+import { MessageSquareText } from "lucide-react";
 import { Group, Row } from "@/components/ui/apple";
 
 /* H10 Ayuda y documentación: hoja estilo iOS, breve y orientada a tareas. */
@@ -33,6 +35,9 @@ export function HelpDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         <div className="px-4 pt-2">
           <Group footer="¿Tienes otra duda? Pregúntale a tu profesor o revisa la lección del tema.">
             {FAQ.map(({ icon, tint, q, a }) => <Row key={q} icon={icon} tint={tint} title={q} subtitle={a} />)}
+          </Group>
+          <Group>
+            <li className="group"><Link href="/comentarios" onClick={onClose} className="flex min-h-12 items-center gap-3 px-4 font-semibold text-brand hover:bg-fill"><MessageSquareText size={20} aria-hidden /> Enviar un comentario o reportar un error</Link></li>
           </Group>
         </div>
       </div>

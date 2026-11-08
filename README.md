@@ -29,6 +29,14 @@ sin conexión. Con sesión vencida se puede seguir estudiando y el indicador pid
 - Contraseñas y códigos con `scrypt`; sesiones con token Bearer (en la BD solo su SHA-256); bloqueo de 15 min tras 5 intentos fallidos.
 - Una cuenta con contraseña solo acepta sincronización con un token de su sesión.
 
+## Comentarios de los alumnos
+
+- `/comentarios`: el alumno elige tipo (error, contenido, sugerencia, otro) y escribe; se envía por la cola de
+  sincronización (funciona sin conexión) con la pantalla de origen, versión y plataforma. Cada lección tiene
+  el enlace "¿Viste un error en esta lección?". En "Mis comentarios" ve el estado y la respuesta del autor.
+- `/admin/comentarios`: bandeja del autor (filtrar, responder, marcar en revisión / resuelto).
+  Solo para cuentas cuyo correo esté en la variable de entorno **`ADMIN_EMAILS`** de Vercel (separados por coma).
+
 ## Desarrollo
 
 ```bash
@@ -72,7 +80,7 @@ exportación estática (Capacitor por defecto siempre entrega el de la raíz).
 npm test                 # contenido + API (BD simulada y Postgres en memoria con PGlite)
 # e2e: servidor con BD local, nunca la de producción
 npx tsx tests/e2e/pglite-setup.mts .pglite-e2e && npm run build
-PGLITE_DIR=.pglite-e2e DATABASE_URL= npx next start -p 3100 &
+PGLITE_DIR=.pglite-e2e DATABASE_URL= ADMIN_EMAILS=autor-e2e@ejemplo.com npx next start -p 3100 &
 npm run test:e2e                                   # 157 rutas (móvil y escritorio) + flujos
 TSX_TSCONFIG_PATH=tests/tsconfig.json npx tsx tests/e2e/account.mts   # cuentas y PWA
 # Android: APK debug contra la API LOCAL (permite HTTP solo a localhost, solo en debug)

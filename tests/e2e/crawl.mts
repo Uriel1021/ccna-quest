@@ -16,7 +16,7 @@ import { signup } from "./helpers.mts";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
 const routes = [
-  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/~offline",
+  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/comentarios", "/admin", "/admin/comentarios", "/~offline",
   ...syllabus.flatMap((m) => [`/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`, ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/${lessonSlug(id)}`)]),
   ...EXAMS.map((e) => `/examenes/${e.id}`),
   ...GAME_SLUGS.map((s) => `/juegos/${s}`),
@@ -38,7 +38,9 @@ export async function mockSync(page: Page) {
 
 async function check(page: Page, path: string, tag: string) {
   const errs: string[] = [];
-  const onConsole = (m: import("playwright-core").ConsoleMessage) => { if (m.type() === "error") errs.push(`console: ${m.text().slice(0, 200)}`); };
+  // En /admin/comentarios un alumno recibe 403 a propósito (la bandeja es solo del autor).
+  const expected403 = path.startsWith("/admin/comentarios");
+  const onConsole = (m: import("playwright-core").ConsoleMessage) => { if (m.type() === "error" && !(expected403 && m.text().includes("status of 403"))) errs.push(`console: ${m.text().slice(0, 200)}`); };
   // Falso positivo de Playwright: con serviceWorkers:"block", register() devuelve undefined (en un navegador real nunca).
   const onPageErr = (e: Error) => { if (!e.message.includes("reading 'waiting'")) errs.push(`pageerror: ${e.message.slice(0, 200)}`); };
   page.on("console", onConsole); page.on("pageerror", onPageErr);

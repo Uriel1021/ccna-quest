@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLiveQuery } from "@/lib/use-live-query";
-import { BookMarked, CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, ListChecks, Clock } from "lucide-react";
+import { BookMarked, CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, ListChecks, Clock, MessageSquareWarning } from "lucide-react";
 import { Button } from "@/components/ui/apple";
 import { db } from "@/lib/local-db";
 import { setLessonProgress } from "@/lib/progress";
@@ -105,6 +105,11 @@ export function LessonView({ module: m, lessonId, title, content, figures = [] }
         <p className="mt-2 text-muted">Explicación redactada para estudiantes con base en estas obras y estándares:</p>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">{(SOURCES[m.id] ?? []).map((s) => <li key={s}>{s}</li>)}</ul>
       </details>
+      <p className="mt-4 text-center text-[15px]">
+        <Link href={`/comentarios?tipo=content&desde=${encodeURIComponent(`/aprender/modulo-${m.id}/${lessonSlug(lessonId)}`)}`} className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand">
+          <MessageSquareWarning size={17} aria-hidden /> ¿Viste un error en esta lección? Avísanos
+        </Link>
+      </p>
     </article>
   );
 }

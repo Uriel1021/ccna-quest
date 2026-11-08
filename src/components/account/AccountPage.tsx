@@ -6,7 +6,7 @@
  */
 import { useEffect, useId, useState } from "react";
 import clsx from "clsx";
-import { Cloud, Copy, Check, Eye, EyeOff, KeyRound, LogOut, ShieldCheck, Smartphone, RefreshCw } from "lucide-react";
+import { Inbox, Cloud, Copy, Check, Eye, EyeOff, KeyRound, LogOut, ShieldCheck, Smartphone, RefreshCw } from "lucide-react";
 import { Button, Group, LargeTitle, Row } from "@/components/ui/apple";
 import { useLiveQuery } from "@/lib/use-live-query";
 import { db, getSession } from "@/lib/local-db";
@@ -152,7 +152,7 @@ export function AuthForms({ expiredEmail, onCode, initialMode = "login", showBen
 }
 
 /* ── Con sesión ── */
-function AccountView({ email, displayName }: { email: string; displayName: string }) {
+function AccountView({ email, displayName, isAdmin }: { email: string; displayName: string; isAdmin?: boolean }) {
   const pending = useLiveQuery(() => db.outbox.count(), [], 0);
   const { syncing, lastError } = useSyncState();
   const [panel, setPanel] = useState<"none" | "password" | "code" | "logout">("none");
@@ -178,6 +178,12 @@ function AccountView({ email, displayName }: { email: string; displayName: strin
           <p className="truncate text-[15px] text-muted">{email}</p>
         </div>
       </section>
+
+      {isAdmin && (
+        <Group header="Autor de la app">
+          <Row icon={Inbox} tint="purple" title="Bandeja de comentarios" subtitle="Lo que reportan y sugieren los alumnos." href="/admin/comentarios" />
+        </Group>
+      )}
 
       <Group header="Sincronización">
         <Row icon={Cloud} tint={pending ? "orange" : "green"} title={syncing ? "Sincronizando…" : pending ? `${pending} cambios por subir` : "Todo tu progreso está en la nube"}
@@ -246,7 +252,7 @@ export function AccountPage() {
       <LargeTitle title="Tu cuenta" subtitle={session && !session.expired ? "Tu progreso se guarda en la nube." : "Guarda tu progreso en la nube y úsalo en varios dispositivos."} />
       {session === null ? <p className="py-10 text-center text-muted">Cargando…</p>
         : code ? <RecoveryCode code={code} onDone={() => setCode(null)} />
-        : session && !session.expired ? <AccountView email={session.email} displayName={session.displayName} />
+        : session && !session.expired ? <AccountView email={session.email} displayName={session.displayName} isAdmin={session.isAdmin} />
         : <AuthForms expiredEmail={session?.expired ? session.email : undefined} onCode={setCode} />}
     </>
   );

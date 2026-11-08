@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import { randomUUID } from "node:crypto";
+import pkg from "./package.json";
 import { GAME_SLUGS } from "./src/content/game-slugs";
 import { syllabus } from "./src/content/syllabus";
 
@@ -14,6 +15,7 @@ import { syllabus } from "./src/content/syllabus";
  * temporalmente durante la exportación estática.
  */
 const MOBILE = process.env.BUILD_TARGET === "mobile";
+const APP_VERSION = pkg.version;
 
 // Revisión única por build: invalida las páginas precacheadas en cada despliegue.
 const revision = process.env.VERCEL_GIT_COMMIT_SHA ?? randomUUID();
@@ -27,7 +29,7 @@ const withSerwist = withSerwistInit({
   reloadOnOnline: false, // nunca recargar a mitad de un examen
   // Todas las pantallas quedan disponibles offline desde la primera visita.
   additionalPrecacheEntries: [
-    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/~offline",
+    "/", "/aprender", "/juegos", "/examenes", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/comentarios", "/admin", "/admin/comentarios", "/~offline",
     ...syllabus.flatMap((m) => [
       `/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`,
       ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/leccion-${id.replace(".", "-")}`),
@@ -43,9 +45,10 @@ const nextConfig: NextConfig = MOBILE
       output: "export",
       trailingSlash: true, // /aprender/ → aprender/index.html (lo que sirve Capacitor)
       images: { unoptimized: true },
-      env: { NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE ?? "https://ccna-quest.vercel.app" },
+      env: { NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE ?? "https://ccna-quest.vercel.app", NEXT_PUBLIC_APP_VERSION: APP_VERSION },
     }
   : {
+      env: { NEXT_PUBLIC_APP_VERSION: APP_VERSION },
       // PGlite solo se usa en pruebas locales (PGLITE_DIR): no se empaqueta ni se sube a Vercel.
       serverExternalPackages: ["@electric-sql/pglite"],
       outputFileTracingExcludes: { "*": ["node_modules/@electric-sql/**"] },

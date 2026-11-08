@@ -16,7 +16,7 @@ import { signup } from "./helpers.mts";
 
 const ORIGIN = "https://localhost";
 const routes = [
-  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar",
+  "/", "/aprender", "/examenes", "/juegos", "/enfoque", "/recordatorios", "/cuenta", "/instalar", "/comentarios", "/admin", "/admin/comentarios",
   ...syllabus.flatMap((m) => [`/aprender/modulo-${m.id}`, `/aprender/modulo-${m.id}/reto`, ...m.lessons.map(([id]) => `/aprender/modulo-${m.id}/${lessonSlug(id)}`)]),
   ...EXAMS.map((e) => `/examenes/${e.id}`),
   ...GAME_SLUGS.map((s) => `/juegos/${s}`),
@@ -32,9 +32,11 @@ let current = "";
 page.on("pageerror", (e) => problems.push(`${current} → pageerror: ${e.message.slice(0, 180)}`));
 // "Error injecting safe area CSS": carrera interna de Capacitor (SystemBars) cuando el documento se reemplaza
 // durante una recarga completa; la app no usa esas variables (usa env(safe-area-inset-*)).
-page.on("console", (m) => { if (m.type() === "error" && !m.text().includes("Error injecting safe area CSS")) problems.push(`${current} → console: ${m.text().slice(0, 180)}`); });
+page.on("console", (m) => { if (m.type() === "error" && !m.text().includes("Error injecting safe area CSS") && !(current.startsWith("/admin/comentarios") && m.text().includes("status of 403"))) problems.push(`${current} → console: ${m.text().slice(0, 180)}`); });
 
-page.on("response", (r) => { if (r.status() >= 400) problems.push(`${current} → HTTP ${r.status()} ${r.url()}`); });
+// 403 en /api/feedback: un alumno abriendo la bandeja del autor (esperado).
+const expected403 = (url: string, status: number) => status === 403 && url.includes("/api/feedback");
+page.on("response", (r) => { if (r.status() >= 400 && !expected403(r.url(), r.status())) problems.push(`${current} → HTTP ${r.status()} ${r.url()}`); });
 const go = async (path: string) => {
   current = path;
   await page.goto(ORIGIN + path + (path.endsWith("/") ? "" : "/"), { waitUntil: "load", timeout: 20000 });
@@ -113,6 +115,14 @@ for (const slug of ["subnet-sprint", "binario-relampago", "memorama-protocolos",
     }
   });
 }
+
+await step("Comentario sin red en la APK: se guarda como 'Por enviar'", async () => {
+  await go("/comentarios");
+  await page.getByRole("radio", { name: "Error en la app" }).click();
+  await page.getByLabel("Tu comentario").fill("Prueba desde la APK sin conexión: el botón tarda en responder.");
+  await page.getByRole("button", { name: "Enviar comentario" }).click();
+  await page.locator("li", { hasText: "Prueba desde la APK" }).getByText(/Por enviar|Recibido/).waitFor({ timeout: 8000 });
+});
 
 await step("Recordatorios: la pantalla carga en la app nativa", async () => {
   await go("/recordatorios");

@@ -4,7 +4,7 @@
  * Este módulo no usa `window`, así que también funciona dentro del Service Worker.
  */
 import Dexie, { type Table } from "dexie";
-import type { SyncOp } from "./sync-protocol";
+import type { SyncOp, FeedbackItem } from "./sync-protocol";
 
 type Data<K extends SyncOp["kind"]> = Extract<SyncOp, { kind: K }>["data"];
 
@@ -15,6 +15,7 @@ export type LocalLesson = Data<"lesson">;
 export type LocalGame = Data<"game">;
 export type LocalBadge = Data<"badge">;
 export type LocalFocus = Data<"focus">;
+export type LocalFeedback = FeedbackItem;
 
 export type OutboxItem = { seq?: number; op: SyncOp; createdAt: number; tries: number; lastError?: string };
 export type MetaItem = { key: string; value: unknown };
@@ -27,6 +28,7 @@ export class LocalDB extends Dexie {
   games!: Table<LocalGame, string>;
   badges!: Table<LocalBadge, string>;
   focus!: Table<LocalFocus, string>;
+  feedback!: Table<LocalFeedback, string>;
   outbox!: Table<OutboxItem, number>;
   meta!: Table<MetaItem, string>;
 
@@ -43,6 +45,8 @@ export class LocalDB extends Dexie {
       outbox: "++seq, createdAt",
       meta: "key",
     });
+    // v2: comentarios para el autor (estado y respuesta llegan al sincronizar).
+    this.version(2).stores({ feedback: "id, createdAt" });
   }
 }
 
@@ -63,6 +67,6 @@ export async function getProfile(): Promise<LocalProfile> {
 }
 
 /* ── Sesión de la cuenta (si el alumno inició sesión) ── */
-export type LocalSession = { token: string; userId: string; email: string; displayName: string; expired?: boolean };
+export type LocalSession = { token: string; userId: string; email: string; displayName: string; expired?: boolean; isAdmin?: boolean };
 export const getSession = async () => (await db.meta.get("session"))?.value as LocalSession | undefined;
 export const setSession = (s: LocalSession | null) => (s ? db.meta.put({ key: "session", value: s }) : db.meta.delete("session"));

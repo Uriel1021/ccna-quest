@@ -40,7 +40,7 @@ async function requireSession(): Promise<LocalSession> {
 }
 
 const toSession = (r: { token: string; user: AccountUser }): LocalSession =>
-  ({ token: r.token, userId: r.user.id, email: r.user.email, displayName: r.user.displayName });
+  ({ token: r.token, userId: r.user.id, email: r.user.email, displayName: r.user.displayName, ...(r.user.isAdmin ? { isAdmin: true } : {}) });
 
 /* ───────────── Crear cuenta / entrar / recuperar ───────────── */
 
@@ -78,7 +78,7 @@ export async function recover(email: string, recoveryCode: string, newPassword: 
  */
 async function adopt(r: { token: string; user: AccountUser }) {
   await setSession(toSession(r));
-  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.outbox], async () => {
+  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.feedback, db.outbox], async () => {
     const p = await getProfile();
     await db.profile.put({ ...p, userId: r.user.id, displayName: r.user.displayName });
     await db.outbox.clear();
@@ -88,6 +88,9 @@ async function adopt(r: { token: string; user: AccountUser }) {
     for (const data of await db.games.toArray()) await enqueue({ kind: "game", data });
     for (const data of await db.badges.toArray()) await enqueue({ kind: "badge", data });
     for (const data of await db.focus.toArray()) await enqueue({ kind: "focus", data });
+    for (const f of await db.feedback.toArray()) {
+      await enqueue({ kind: "feedback", data: { id: f.id, category: f.category, message: f.message, page: f.page, appVersion: f.appVersion, platform: f.platform, createdAt: f.createdAt } });
+    }
   });
   await pullAndMerge({ force: true }).catch(() => {});
   void flushOutbox().catch(() => {});
@@ -108,13 +111,14 @@ export async function pullAndMerge({ force = false } = {}): Promise<boolean> {
   if (!res.ok) return false;
   const remote = (await res.json()) as PullResponse;
 
-  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.outbox, db.meta], async () => {
+  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.feedback, db.outbox, db.meta], async () => {
     for (const l of remote.lessons) { const cur = await db.lessons.get(l.lessonId); if (!cur || l.updatedAt > cur.updatedAt) await db.lessons.put(l); }
     for (const a of remote.attempts) { const cur = await db.attempts.get(a.id); if (!cur || (a.finishedAt && !cur.finishedAt)) await db.attempts.put(a); }
     for (const a of remote.answers) { const cur = await db.answers.get([a.attemptId, a.questionId]); if (!cur || a.answeredAt > cur.answeredAt) await db.answers.put(a); }
     for (const g of remote.games) if (!(await db.games.get(g.id))) await db.games.add(g);
     for (const b of remote.badges) if (!(await db.badges.get(b.badgeId))) await db.badges.add(b);
     for (const f of remote.focus) { const cur = await db.focus.get(f.id); if (!cur || f.updatedAt > cur.updatedAt) await db.focus.put(f); }
+    for (const f of remote.feedback ?? []) { const cur = await db.feedback.get(f.id); if (!cur || f.updatedAt > cur.updatedAt) await db.feedback.put(f); }
 
     // Perfil: XP y racha = el mayor de ambos; nombre = el más reciente.
     const p = await getProfile();
@@ -144,8 +148,8 @@ export async function logout({ force = false } = {}): Promise<{ done: boolean; p
   if (pending > 0 && !force) return { done: false, pending };
 
   if (s) void call("logout", { token: s.token }).catch(() => {});
-  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.outbox, db.meta], async () => {
-    await Promise.all([db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.outbox].map((t) => t.clear()));
+  await db.transaction("rw", [db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.feedback, db.outbox, db.meta], async () => {
+    await Promise.all([db.profile, db.attempts, db.answers, db.lessons, db.games, db.badges, db.focus, db.feedback, db.outbox].map((t) => t.clear()));
     await db.meta.bulkDelete(["session", "lastPullAt", "lastSyncAt", "lastSyncError"]);
   });
   await getProfile(); // nuevo alumno anónimo para este dispositivo
@@ -169,7 +173,10 @@ export async function newRecoveryCode(password: string): Promise<string> {
 export async function checkSession() {
   const s = await getSession();
   if (!s || s.expired) return;
-  try { await call("me", { method: "GET", token: s.token }); }
+  try {
+    const { user } = await call<{ user: AccountUser }>("me", { method: "GET", token: s.token });
+    if (!!user.isAdmin !== !!s.isAdmin || user.displayName !== s.displayName) await setSession({ ...s, isAdmin: !!user.isAdmin, displayName: user.displayName });
+  }
   catch (e) { if (e instanceof AuthFailure && e.status === 401) await setSession({ ...s, expired: true }); }
 }
 

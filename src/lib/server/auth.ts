@@ -86,3 +86,10 @@ export async function registerFailure(db: DB, userId: string, fails: number) {
     : { failedLogins: next }).where(eq(users.id, userId));
 }
 export const isLocked = (u: { lockedUntil: Date | null }) => !!u.lockedUntil && u.lockedUntil.getTime() > Date.now();
+
+/* ── Administradores: correos en la variable de entorno ADMIN_EMAILS (separados por coma) ── */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return admins.includes(email.toLowerCase());
+}

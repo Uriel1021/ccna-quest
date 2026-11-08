@@ -3,7 +3,9 @@
  *   escribe en IndexedDB + encola para el servidor (misma transacción, todo o nada)
  *   y luego pide sincronizar. Si no hay red, no pasa nada: queda en cola.
  */
+import { Capacitor } from "@capacitor/core";
 import { db, getProfile, levelFor, type LocalAttempt, type LocalFocus } from "./local-db";
+import type { FeedbackItem } from "./sync-protocol";
 import { enqueue } from "./sync";
 import { requestSync } from "./sync-client";
 
@@ -92,4 +94,17 @@ export async function saveFocus(data: LocalFocus, xpDelta = 0) {
     await bumpXp(xpDelta);
   });
   void requestSync();
+}
+
+/** Comentario para el autor. Se guarda y se envía con la cola (si no hay red, sale cuando vuelva). */
+export async function sendFeedback(category: FeedbackItem["category"], message: string, page: string | null) {
+  const now = Date.now();
+  const data = { id: crypto.randomUUID(), category, message: message.trim(), page: page?.slice(0, 200) || null,
+    appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? null, platform: Capacitor.isNativePlatform() ? "android" as const : "web" as const, createdAt: now };
+  await db.transaction("rw", [db.feedback, db.outbox], async () => {
+    await db.feedback.add({ ...data, status: "new", reply: null, updatedAt: now });
+    await enqueue({ kind: "feedback", data });
+  });
+  void requestSync();
+  return data.id;
 }
